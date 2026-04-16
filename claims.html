@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Claims — Lost2Found | Chandigarh University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #0c0c0e;
+      --surface:   #131316;
+      --surface2:  #1c1c22;
+      --border:    rgba(255,255,255,0.07);
+      --cu-red:    #c0272d;
+      --cu-red-g:  rgba(192,39,45,0.3);
+      --found:     #3dd68c;
+      --lost:      #ff6b6b;
+      --pending:   #f5a623;
+      --text:      #f2f2f5;
+      --muted:     #888899;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --radius:    14px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body); background: var(--bg); color: var(--text);
+      min-height: 100vh; visibility: hidden;
+    }
+    body.ready { visibility: visible; }
+
+    /* ── NOISE ── */
+    body::after {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.4;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 64px; padding: 0 5vw;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(12,12,14,0.92); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-left { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+    .nav-logo  { height: 36px; border-radius: 5px; filter: drop-shadow(0 0 6px rgba(192,39,45,0.4)); }
+    .nav-brand { font-family: var(--font-head); font-size: 1.3rem; font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
+    .nav-brand .nl { color: var(--lost); }
+    .nav-brand .nf { color: var(--found); }
+    .nav-brand .ns { color: var(--muted); font-weight: 300; }
+    .nav-cu    { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; margin-top: 1px; }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .nav-user  { font-size: 0.84rem; color: var(--muted); }
+    .nav-user strong { color: var(--text); }
+    .btn-nav {
+      font-size: 0.83rem; font-weight: 500; padding: 7px 14px; border-radius: 8px;
+      text-decoration: none; border: 1px solid var(--border); background: var(--surface2);
+      color: var(--muted); cursor: pointer; font-family: var(--font-body); transition: all 0.2s;
+    }
+    .btn-nav:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+    .btn-nav.red { background: var(--cu-red); color: white; border-color: var(--cu-red); box-shadow: 0 0 14px var(--cu-red-g); }
+
+    /* ── PAGE LAYOUT ── */
+    .page { max-width: 1100px; margin: 0 auto; padding: 88px 5vw 60px; }
+
+    /* ── PAGE HEADER ── */
+    .page-header { margin-bottom: 36px; }
+    .page-header .sec-lbl { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cu-red); display: block; margin-bottom: 8px; }
+    .page-header h1 { font-family: var(--font-head); font-size: 2.2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 8px; }
+    .page-header p { color: var(--muted); font-size: 0.9rem; }
+
+    /* ── TABS ── */
+    .tab-row {
+      display: flex; gap: 4px; background: var(--surface); border-radius: 12px;
+      padding: 4px; margin-bottom: 32px; width: fit-content;
+      border: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 9px 20px; border-radius: 9px; border: none;
+      font-family: var(--font-body); font-size: 0.86rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; color: var(--muted); background: transparent;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .tab-btn.active { background: var(--surface2); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .tab-count {
+      background: var(--cu-red); color: white; font-size: 0.7rem; font-weight: 700;
+      padding: 1px 7px; border-radius: 100px; min-width: 20px; text-align: center;
+    }
+
+    /* ── STATS ROW ── */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 32px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; display: flex; align-items: center; gap: 14px;
+    }
+    .stat-ico {
+      width: 44px; height: 44px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;
+    }
+    .stat-card h3 { font-family: var(--font-head); font-size: 1.6rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+    .stat-card p  { font-size: 0.76rem; color: var(--muted); margin-top: 3px; }
+
+    /* ── EMPTY STATE ── */
+    .empty {
+      text-align: center; padding: 80px 20px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    }
+    .empty-ico { font-size: 3rem; margin-bottom: 14px; }
+    .empty h3  { font-family: var(--font-head); font-size: 1.3rem; margin-bottom: 8px; }
+    .empty p   { color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
+
+    /* ── ITEM CLAIM GROUP ── */
+    .item-group { margin-bottom: 28px; }
+    .item-group-header {
+      display: flex; align-items: center; gap: 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+    }
+    .item-group-img {
+      width: 56px; height: 56px; border-radius: 10px; object-fit: cover;
+      background: var(--surface2); flex-shrink: 0;
+    }
+    .item-group-info { flex: 1; }
+    .item-group-info h3 { font-family: var(--font-head); font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .item-group-info p  { font-size: 0.8rem; color: var(--muted); }
+    .item-group-badge {
+      padding: 4px 12px; border-radius: 100px; font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em; flex-shrink: 0;
+    }
+    .badge-lost     { background: rgba(255,107,107,0.12); color: var(--lost); }
+    .badge-found    { background: rgba(61,214,140,0.12);  color: var(--found); }
+    .badge-returned { background: rgba(108,99,255,0.12);  color: #9b94ff; }
+
+    /* ── CLAIM CARDS ── */
+    .claims-list {
+      background: var(--surface); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 var(--radius) var(--radius);
+      overflow: hidden;
+    }
+    .claim-card {
+      padding: 20px; border-bottom: 1px solid var(--border);
+      display: grid; grid-template-columns: 1fr auto;
+      gap: 16px; align-items: start;
+      transition: background 0.2s;
+    }
+    .claim-card:last-child { border-bottom: none; }
+    .claim-card:hover { background: rgba(255,255,255,0.015); }
+    .claim-card.approved { border-left: 3px solid var(--found); }
+    .claim-card.rejected { border-left: 3px solid var(--lost); opacity: 0.6; }
+    .claim-card.pending  { border-left: 3px solid var(--pending); }
+
+    .claimer-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .claimer-avatar {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--cu-red), #7a1a1e);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-head); font-weight: 800; font-size: 0.9rem; color: white;
+    }
+    .claimer-name  { font-weight: 600; font-size: 0.93rem; }
+    .claimer-email { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
+    .claim-time    { font-size: 0.74rem; color: var(--muted); margin-left: auto; flex-shrink: 0; }
+
+    .proof-box {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 9px;
+      padding: 12px 14px; font-size: 0.85rem; color: rgba(255,255,255,0.75);
+      line-height: 1.6; margin-bottom: 10px;
+    }
+    .proof-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+
+    .claim-status-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .cs-pending  { background: rgba(245,166,35,0.12);  color: var(--pending); }
+    .cs-approved { background: rgba(61,214,140,0.12);  color: var(--found); }
+    .cs-rejected { background: rgba(255,107,107,0.12); color: var(--lost); }
+
+    /* ── ACTION BUTTONS ── */
+    .claim-actions { display: flex; flex-direction: column; gap: 8px; min-width: 120px; }
+    .btn-approve, .btn-reject {
+      width: 100%; padding: 9px 16px; border-radius: 9px; border: none;
+      font-family: var(--font-body); font-size: 0.83rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-approve {
+      background: rgba(61,214,140,0.12); color: var(--found);
+      border: 1px solid rgba(61,214,140,0.3);
+    }
+    .btn-approve:hover { background: rgba(61,214,140,0.22); }
+    .btn-reject  {
+      background: rgba(255,107,107,0.08); color: var(--lost);
+      border: 1px solid rgba(255,107,107,0.25);
+    }
+    .btn-reject:hover { background: rgba(255,107,107,0.18); }
+    .btn-disabled {
+      width: 100%; padding: 9px 16px; border-radius: 9px;
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); font-size: 0.8rem; text-align: center;
+    }
+
+    /* ── MY CLAIMS (submitted by me) ── */
+    .my-claim-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; margin-bottom: 14px; display: grid;
+      grid-template-columns: 64px 1fr auto; gap: 16px; align-items: center;
+      transition: all 0.2s;
+    }
+    .my-claim-card:hover { border-color: rgba(255,255,255,0.12); }
+    .my-claim-img {
+      width: 64px; height: 64px; border-radius: 10px; object-fit: cover; background: var(--surface2);
+    }
+    .my-claim-name { font-family: var(--font-head); font-weight: 700; font-size: 0.97rem; margin-bottom: 4px; }
+    .my-claim-loc  { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+
+    /* ── LOADER ── */
+    .loader { width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--cu-red); animation: spin 0.7s linear infinite; margin: 60px auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; bottom: 26px; right: 26px; z-index: 400;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 11px;
+      padding: 12px 18px; display: flex; align-items: center; gap: 10px;
+      font-size: 0.85rem; max-width: 320px;
+      transform: translateY(70px); opacity: 0;
+      transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ── CONFIRM MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 300;
+      background: rgba(0,0,0,0.76); backdrop-filter: blur(10px);
+      display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+      width: 100%; max-width: 420px;
+      animation: mpop 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes mpop { from{opacity:0;transform:scale(0.92)} to{opacity:1;transform:scale(1)} }
+    .modal-body { padding: 32px; text-align: center; }
+    .modal-ico  { font-size: 2.5rem; margin-bottom: 16px; }
+    .modal-body h3 { font-family: var(--font-head); font-size: 1.2rem; font-weight: 800; margin-bottom: 8px; }
+    .modal-body p  { color: var(--muted); font-size: 0.87rem; line-height: 1.6; margin-bottom: 24px; }
+    .modal-btns { display: flex; gap: 10px; }
+    .modal-btns button {
+      flex: 1; padding: 11px; border-radius: 10px; border: none; cursor: pointer;
+      font-family: var(--font-body); font-weight: 600; font-size: 0.9rem; transition: all 0.2s;
+    }
+    .modal-cancel { background: var(--surface2); color: var(--muted); border: 1px solid var(--border) !important; }
+    .modal-cancel:hover { color: var(--text); }
+    .modal-confirm-approve { background: var(--found); color: #0c0c0e; }
+    .modal-confirm-reject  { background: var(--lost);  color: white; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .claim-card { grid-template-columns: 1fr; }
+      .my-claim-card { grid-template-columns: 48px 1fr; }
+      .my-claim-card .claim-status-badge { grid-column: 1/-1; }
+    }
+    @media (max-width: 480px) {
+      .stats-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-left" href="index.html">
+    <img class="nav-logo" src="logo.jpg" alt="CU" />
+    <div>
+      <div class="nav-brand"><span class="nl">Lost</span><span class="ns">2</span><span class="nf">Found</span></div>
+      <div class="nav-cu">Chandigarh University</div>
+    </div>
+  </a>
+  <div class="nav-right">
+    <span class="nav-user">Hi, <strong id="nav-name">--</strong></span>
+    <a href="index.html" class="btn-nav">← Portal</a>
+    <button class="btn-nav" onclick="logout()">Sign Out</button>
+  </div>
+</nav>
+
+<!-- PAGE -->
+<div class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <span class="sec-lbl">Claims Dashboard</span>
+    <h1>My Claims & Reports</h1>
+    <p>Review claims on your reported items and track claims you've submitted.</p>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-ico" style="background:rgba(192,39,45,0.1)">📋</div>
+      <div><h3 id="s-total">0</h3><p>My Reports</p></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-ico" style="background:rgba(245,166,35,0.1)">⏳</div>
+      <div><h3 id="s-pending" style="color:var(--pending)">0</h3><p>Pending Claims</p></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-ico" style="background:rgba(61,214,140,0.1)">✅</div>
+      <div><h3 id="s-approved" style="color:var(--found)">0</h3><p>Approved</p></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-ico" style="background:rgba(108,99,255,0.1)">🎁</div>
+      <div><h3 id="s-returned" style="color:#9b94ff">0</h3><p>Items Returned</p></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-row">
+    <button class="tab-btn active" id="tab-incoming" onclick="switchTab('incoming')">
+      Incoming Claims <span class="tab-count" id="incoming-count">0</span>
+    </button>
+    <button class="tab-btn" id="tab-submitted" onclick="switchTab('submitted')">
+      My Submitted Claims
+    </button>
+  </div>
+
+  <!-- INCOMING CLAIMS TAB -->
+  <div id="section-incoming">
+    <div id="incoming-container">
+      <div class="loader"></div>
+    </div>
+  </div>
+
+  <!-- SUBMITTED CLAIMS TAB -->
+  <div id="section-submitted" style="display:none">
+    <div id="submitted-container">
+      <div class="loader"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal-box">
+    <div class="modal-body">
+      <div class="modal-ico" id="modal-ico">🤔</div>
+      <h3 id="modal-title">Are you sure?</h3>
+      <p id="modal-msg">This action cannot be undone.</p>
+      <div class="modal-btns">
+        <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+        <button id="modal-confirm-btn" onclick="confirmAction()">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"><span id="toast-icon">✓</span> <span id="toast-msg"></span></div>
+
+<script>
+  // ── CONFIG ──────────────────────────────────
+  const API   = '/api';
+  const token = localStorage.getItem('l2f_token');
+  const user  = JSON.parse(localStorage.getItem('l2f_user') || 'null');
+
+  // ── ROUTE GUARD ──────────────────────────────
+  if (!token || !user) {
+    window.location.replace('auth.html');
+  } else {
+    document.body.classList.add('ready');
+    document.getElementById('nav-name').textContent = user.name.split(' ')[0];
+  }
+
+  // ── AUTH HEADERS ─────────────────────────────
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
+
+  // ── HELPERS ──────────────────────────────────
+  function fmtDate(d) {
+    return new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  }
+  function locFmt(l) {
+    return { library:'📚 Library', cafeteria:'🍽️ Cafeteria', auditorium:'🎭 Auditorium', gym:'🏋️ Gym', dorm:'🏠 Hostel', parking:'🅿️ Parking', classroom:'🏫 Classroom', lab:'🔬 Lab' }[l] || l;
+  }
+  function initials(name) {
+    return name ? name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() : '??';
+  }
+  function toast(msg, ok=true) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent  = msg;
+    document.getElementById('toast-icon').textContent = ok ? '✓' : '✕';
+    t.className = 'show';
+    setTimeout(() => t.className = '', 3500);
+  }
+  function logout() {
+    localStorage.removeItem('l2f_token');
+    localStorage.removeItem('l2f_user');
+    window.location.replace('auth.html');
+  }
+
+  // ── TAB SWITCH ───────────────────────────────
+  function switchTab(tab) {
+    document.getElementById('section-incoming').style.display  = tab === 'incoming'  ? 'block' : 'none';
+    document.getElementById('section-submitted').style.display = tab === 'submitted' ? 'block' : 'none';
+    document.getElementById('tab-incoming').classList.toggle('active',  tab === 'incoming');
+    document.getElementById('tab-submitted').classList.toggle('active', tab === 'submitted');
+    if (tab === 'submitted') loadSubmitted();
+  }
+
+  // ── MODAL ────────────────────────────────────
+  window.pendingAction = null;
+
+  window.openConfirm = function(type, claimId, claimName) {
+    window.pendingAction = { type, claimId };
+    const isApprove = type === 'approve';
+    document.getElementById('modal-ico').textContent   = isApprove ? '✅' : '❌';
+    document.getElementById('modal-title').textContent = isApprove ? 'Approve this claim?' : 'Reject this claim?';
+    document.getElementById('modal-msg').textContent   = isApprove
+      ? `This will mark the item as returned. All other claims will be rejected.`
+      : `This claim will be rejected.`;
+    const btn = document.getElementById('modal-confirm-btn');
+    btn.textContent = isApprove ? '✅ Approve' : '❌ Reject';
+    btn.className   = isApprove ? 'modal-confirm-approve' : 'modal-confirm-reject';
+    document.getElementById('confirm-modal').classList.add('open');
+  };
+
+  window.closeModal = function() {
+    document.getElementById('confirm-modal').classList.remove('open');
+    window.pendingAction = null;
+  };
+
+  window.confirmAction = async function() {
+    if (!window.pendingAction) return;
+    const { type, claimId } = window.pendingAction;
+    window.closeModal();
+    await handleClaim(type, claimId);
+  };
+
+  // ── HANDLE APPROVE / REJECT ──────────────────
+  async function handleClaim(action, claimId) {
+    try {
+      const res  = await fetch(`${API}/claims/${claimId}/${action}`, {
+        method: 'PUT', headers: authHeaders
+      });
+      const data = await res.json();
+      if (!res.ok) { toast(data.message || 'Something went wrong.', false); return; }
+      toast(action === 'approve' ? '✅ Claim approved! Item marked as returned.' : '❌ Claim rejected.');
+      loadIncoming(); // refresh
+    } catch {
+      toast('Server error. Try again.', false);
+    }
+  }
+
+  // ── LOAD INCOMING CLAIMS (on my items) ───────
+  async function loadIncoming() {
+    const container = document.getElementById('incoming-container');
+    container.innerHTML = '<div class="loader"></div>';
+    try {
+      // First get all my reported items
+      const itemsRes  = await fetch(`${API}/items/my`, { headers: authHeaders });
+      const myItems   = await itemsRes.json();
+
+      if (!myItems.length) {
+        container.innerHTML = `
+          <div class="empty">
+            <div class="empty-ico">📭</div>
+            <h3>No items reported yet</h3>
+            <p>Once you report a lost or found item, claims from other students will appear here.</p>
+          </div>`;
+        updateStats([], []);
+        return;
+      }
+
+      // Get claims for each item
+      let allClaims = [];
+      const itemsWithClaims = [];
+
+      for (const item of myItems) {
+        const claimsRes = await fetch(`${API}/claims/item/${item._id}`, { headers: authHeaders });
+        if (claimsRes.ok) {
+          const claims = await claimsRes.json();
+          if (claims.length) {
+            itemsWithClaims.push({ item, claims });
+            allClaims = allClaims.concat(claims);
+          }
+        }
+      }
+
+      // Update stats
+      updateStats(myItems, allClaims);
+
+      // Update tab count
+      const pendingCount = allClaims.filter(c => c.status === 'pending').length;
+      document.getElementById('incoming-count').textContent = pendingCount;
+
+      if (!itemsWithClaims.length) {
+        container.innerHTML = `
+          <div class="empty">
+            <div class="empty-ico">📬</div>
+            <h3>No claims yet</h3>
+            <p>You have <strong style="color:var(--text)">${myItems.length}</strong> reported item(s). When someone submits a claim, it will appear here for you to review.</p>
+          </div>`;
+        return;
+      }
+
+      // Render item groups with their claims
+      container.innerHTML = itemsWithClaims.map(({ item, claims }) => `
+        <div class="item-group">
+          <div class="item-group-header">
+            <img class="item-group-img" src="${item.image}" alt="${item.name}"
+              onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2256%22 height=%2256%22><rect width=%2256%22 height=%2256%22 fill=%22%231c1c22%22/><text x=%2250%%22 y=%2255%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23444%22 font-size=%2224%22>📦</text></svg>'" />
+            <div class="item-group-info">
+              <h3>${item.name}</h3>
+              <p>${locFmt(item.location)} · Reported ${fmtDate(item.createdAt)} · ${claims.length} claim${claims.length > 1 ? 's' : ''}</p>
+            </div>
+            <span class="item-group-badge badge-${item.status}">${item.status}</span>
+          </div>
+          <div class="claims-list">
+            ${claims.map(claim => renderClaimCard(claim, item)).join('')}
+          </div>
+        </div>
+      `).join('');
+
+    } catch(err) {
+      container.innerHTML = `
+        <div class="empty">
+          <div class="empty-ico">⚠️</div>
+          <h3>Connection Error</h3>
+          <p>Could not load claims. Make sure the server is running.</p>
+        </div>`;
+    }
+  }
+
+  function renderClaimCard(claim, item) {
+    const isResolved = item.isResolved || item.status === 'returned';
+    const isPending  = claim.status === 'pending';
+    const name       = claim.claimedBy?.name || claim.claimerName || 'Unknown';
+    const email      = claim.claimedBy?.email || claim.claimerContact || '';
+    const rollNo     = claim.claimedBy?.rollNo || '';
+    const claimId    = claim._id;
+
+    return `
+      <div class="claim-card ${claim.status}">
+        <div>
+          <div class="claimer-row">
+            <div class="claimer-avatar">${initials(name)}</div>
+            <div>
+              <div class="claimer-name">${name}</div>
+              <div class="claimer-email">${email}${rollNo ? ' · ' + rollNo : ''}</div>
+            </div>
+            <div class="claim-time">${fmtDate(claim.createdAt)}</div>
+          </div>
+          <div class="proof-label">Proof of Ownership</div>
+          <div class="proof-box">"${claim.proof}"</div>
+          <span class="claim-status-badge cs-${claim.status}">
+            ${ claim.status === 'pending' ? '⏳ Pending Review' : claim.status === 'approved' ? '✅ Approved' : '❌ Rejected' }
+          </span>
+          ${claim.adminNote ? `<div style="font-size:0.78rem;color:var(--muted);margin-top:6px">Note: ${claim.adminNote}</div>` : ''}
+        </div>
+        <div class="claim-actions">
+          ${ isPending && !isResolved
+            ? `<button class="btn-approve" data-id="${claimId}" data-name="${name}" data-action="approve">✅ Approve</button>
+               <button class="btn-reject"  data-id="${claimId}" data-name="${name}" data-action="reject">❌ Reject</button>`
+            : `<div class="btn-disabled">${isResolved ? '🎁 Returned' : claim.status === 'approved' ? '✅ Approved' : '❌ Rejected'}</div>`
+          }
+        </div>
+      </div>`;
+  }
+
+  // Single event listener for all approve/reject buttons
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action  = btn.dataset.action;
+    const claimId = btn.dataset.id;
+    const name    = btn.dataset.name;
+    if (action === 'approve' || action === 'reject') {
+      openConfirm(action, claimId, name);
+    }
+  });
+
+  // ── LOAD SUBMITTED CLAIMS (by me) ────────────
+  async function loadSubmitted() {
+    const container = document.getElementById('submitted-container');
+    container.innerHTML = '<div class="loader"></div>';
+    try {
+      const res   = await fetch(`${API}/claims/my`, { headers: authHeaders });
+      const claims = await res.json();
+
+      if (!claims.length) {
+        container.innerHTML = `
+          <div class="empty">
+            <div class="empty-ico">🔍</div>
+            <h3>No claims submitted yet</h3>
+            <p>Browse found items on the portal and submit a claim if you find yours.</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = claims.map(claim => {
+        const item = claim.item;
+        if (!item) return '';
+        return `
+          <div class="my-claim-card">
+            <img class="my-claim-img" src="${item.image}" alt="${item.name}"
+              onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22><rect width=%2264%22 height=%2264%22 fill=%22%231c1c22%22/><text x=%2250%%22 y=%2255%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23444%22 font-size=%2228%22>📦</text></svg>'" />
+            <div>
+              <div class="my-claim-name">${item.name}</div>
+              <div class="my-claim-loc">${locFmt(item.location)} · ${item.category}</div>
+              <div class="proof-label" style="margin-bottom:4px">Your Proof</div>
+              <div style="font-size:0.83rem;color:rgba(255,255,255,0.6);margin-bottom:8px">"${claim.proof}"</div>
+              <div style="font-size:0.75rem;color:var(--muted)">Submitted ${fmtDate(claim.createdAt)}</div>
+              ${claim.adminNote ? `<div style="font-size:0.78rem;color:var(--pending);margin-top:4px">📝 Note: ${claim.adminNote}</div>` : ''}
+            </div>
+            <span class="claim-status-badge cs-${claim.status}">
+              ${ claim.status === 'pending' ? '⏳ Under Review' : claim.status === 'approved' ? '✅ Approved — Contact Reporter' : '❌ Rejected' }
+            </span>
+          </div>`;
+      }).join('');
+    } catch {
+      container.innerHTML = `<div class="empty"><div class="empty-ico">⚠️</div><h3>Error loading claims</h3></div>`;
+    }
+  }
+
+  // ── UPDATE STATS ─────────────────────────────
+  function updateStats(myItems, allClaims) {
+    document.getElementById('s-total').textContent    = myItems.length;
+    document.getElementById('s-pending').textContent  = allClaims.filter(c => c.status === 'pending').length;
+    document.getElementById('s-approved').textContent = allClaims.filter(c => c.status === 'approved').length;
+    document.getElementById('s-returned').textContent = myItems.filter(i => i.status === 'returned').length;
+  }
+
+  // ── CLOSE MODAL ON OVERLAY CLICK ─────────────
+  document.getElementById('confirm-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('confirm-modal')) closeModal();
+  });
+
+  // ── INIT ─────────────────────────────────────
+  loadIncoming();
+</script>
+</body>
+</html>

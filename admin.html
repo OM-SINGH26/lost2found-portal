@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Lost2Found | Chandigarh University</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    /* ═══════════════════════════════════════════
+       DESIGN TOKENS — Dark / Light
+    ═══════════════════════════════════════════ */
+    :root {
+      --font: 'Inter', sans-serif;
+      --radius: 12px;
+      --radius-lg: 18px;
+      --cu-red: #c0272d;
+      --cu-red-light: rgba(192,39,45,0.12);
+      --cu-red-glow: rgba(192,39,45,0.3);
+      --green: #22c55e; --green-bg: rgba(34,197,94,0.1);
+      --amber: #f59e0b; --amber-bg: rgba(245,158,11,0.1);
+      --blue:  #3b82f6; --blue-bg:  rgba(59,130,246,0.1);
+      --purple:#8b5cf6; --purple-bg:rgba(139,92,246,0.1);
+      --transition: all 0.2s ease;
+    }
+    [data-theme="dark"] {
+      --bg:       #0a0a0f;
+      --bg2:      #0f0f17;
+      --surface:  #13131e;
+      --surface2: #1a1a28;
+      --surface3: #222233;
+      --border:   rgba(255,255,255,0.06);
+      --border2:  rgba(255,255,255,0.1);
+      --text:     #f1f1f5;
+      --text2:    #a0a0b8;
+      --text3:    #606078;
+      --shadow:   0 4px 24px rgba(0,0,0,0.4);
+      --shadow-lg:0 8px 40px rgba(0,0,0,0.5);
+    }
+    [data-theme="light"] {
+      --bg:       #f8f9fc;
+      --bg2:      #f0f2f8;
+      --surface:  #ffffff;
+      --surface2: #f4f5fa;
+      --surface3: #eceef5;
+      --border:   rgba(0,0,0,0.06);
+      --border2:  rgba(0,0,0,0.1);
+      --text:     #0f0f1a;
+      --text2:    #5a5a78;
+      --text3:    #9090a8;
+      --shadow:   0 4px 24px rgba(0,0,0,0.06);
+      --shadow-lg:0 8px 40px rgba(0,0,0,0.1);
+    }
+
+    /* ═══════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font); background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; visibility: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.ready { visibility: visible; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: var(--font); }
+
+    /* ═══════════════════════════════════════════
+       SIDEBAR
+    ═══════════════════════════════════════════ */
+    .sidebar {
+      width: 248px; flex-shrink: 0; height: 100vh; position: fixed; top: 0; left: 0;
+      background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; z-index: 100;
+      overflow-y: auto; transition: var(--transition);
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    .sidebar-top {
+      padding: 20px 16px 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .s-logo { height: 34px; border-radius: 6px; flex-shrink: 0; }
+    .s-brand { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.03em; }
+    .s-brand .nl { color: #ff6b6b; } .s-brand .nf { color: #3dd68c; } .s-brand .ns { color: var(--text3); }
+    .s-sub { font-size: 0.62rem; color: var(--text3); letter-spacing: 0.07em; text-transform: uppercase; margin-top: 1px; }
+
+    .s-section { padding: 12px 10px 4px; }
+    .s-section-lbl { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); padding: 0 6px; margin-bottom: 4px; }
+
+    .s-item {
+      display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+      border-radius: 9px; color: var(--text2); font-size: 0.84rem; font-weight: 500;
+      transition: var(--transition); border: none; background: none; width: 100%;
+      text-align: left; position: relative;
+    }
+    .s-item:hover { background: var(--surface2); color: var(--text); }
+    .s-item.active { background: var(--cu-red-light); color: var(--cu-red); font-weight: 600; }
+    .s-item.active::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px; border-radius: 0 3px 3px 0; background: var(--cu-red); }
+    .s-ico { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.88rem; flex-shrink: 0; background: var(--surface2); transition: var(--transition); }
+    .s-item.active .s-ico { background: var(--cu-red-light); }
+    .s-badge { margin-left: auto; background: var(--cu-red); color: white; font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 100px; }
+    .s-badge.green { background: var(--green); }
+
+    .sidebar-footer {
+      margin-top: auto; padding: 12px; border-top: 1px solid var(--border);
+    }
+    .s-user {
+      display: flex; align-items: center; gap: 10px; padding: 10px;
+      border-radius: 10px; background: var(--surface2); cursor: pointer;
+      transition: var(--transition);
+    }
+    .s-user:hover { background: var(--surface3); }
+    .s-avatar {
+      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--cu-red), #7a1a1e);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem; color: white;
+    }
+    .s-user-name  { font-size: 0.83rem; font-weight: 600; }
+    .s-user-role  { font-size: 0.7rem; color: var(--cu-red); }
+    .s-logout { margin-left: auto; padding: 5px 9px; border-radius: 7px; background: none; border: 1px solid var(--border); color: var(--text3); font-size: 0.74rem; transition: var(--transition); }
+    .s-logout:hover { color: var(--text); border-color: var(--border2); }
+
+    /* ═══════════════════════════════════════════
+       MAIN
+    ═══════════════════════════════════════════ */
+    .main { margin-left: 248px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* Top bar */
+    .topbar {
+      height: 60px; padding: 0 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 8px; }
+    .page-title { font-size: 1rem; font-weight: 700; }
+    .breadcrumb { font-size: 0.78rem; color: var(--text3); }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+    .tb-btn {
+      padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text2); font-size: 0.8rem; font-weight: 500;
+      display: flex; align-items: center; gap: 6px; transition: var(--transition);
+    }
+    .tb-btn:hover { color: var(--text); border-color: var(--border2); }
+    .tb-btn.red { background: var(--cu-red); color: white; border-color: var(--cu-red); box-shadow: 0 0 16px var(--cu-red-glow); }
+
+    /* Theme toggle */
+    .theme-toggle {
+      width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border);
+      background: var(--surface2); display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; transition: var(--transition);
+    }
+    .theme-toggle:hover { background: var(--surface3); }
+
+    /* Page content */
+    .content { padding: 24px 28px; flex: 1; }
+
+    /* ═══════════════════════════════════════════
+       PAGE SECTIONS
+    ═══════════════════════════════════════════ */
+    .page-section { display: none; animation: fadeIn 0.3s ease; }
+    .page-section.active { display: block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ═══════════════════════════════════════════
+       KPI CARDS
+    ═══════════════════════════════════════════ */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px; }
+    .kpi-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 20px; position: relative; overflow: hidden; transition: var(--transition);
+    }
+    .kpi-card:hover { border-color: var(--border2); box-shadow: var(--shadow); transform: translateY(-2px); }
+    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+    .kpi-card.red::before   { background: var(--cu-red); }
+    .kpi-card.green::before { background: var(--green); }
+    .kpi-card.amber::before { background: var(--amber); }
+    .kpi-card.blue::before  { background: var(--blue); }
+    .kpi-card.purple::before{ background: var(--purple); }
+
+    .kpi-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+    .kpi-ico { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .kpi-trend { font-size: 0.72rem; font-weight: 600; padding: 3px 8px; border-radius: 100px; }
+    .trend-up   { background: var(--green-bg);  color: var(--green); }
+    .trend-down { background: rgba(239,68,68,0.1); color: #ef4444; }
+    .trend-neu  { background: var(--surface2); color: var(--text3); }
+    .kpi-num { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.04em; font-family: 'Courier New', monospace; line-height: 1; margin-bottom: 4px; }
+    .kpi-label { font-size: 0.78rem; color: var(--text2); }
+    .kpi-bar { height: 3px; background: var(--surface3); border-radius: 3px; margin-top: 14px; overflow: hidden; }
+    .kpi-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+
+    /* ═══════════════════════════════════════════
+       GRID LAYOUTS
+    ═══════════════════════════════════════════ */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
+    .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; margin-bottom: 22px; }
+
+    /* ═══════════════════════════════════════════
+       WIDGET CARD
+    ═══════════════════════════════════════════ */
+    .widget {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      overflow: hidden; transition: var(--transition);
+    }
+    .widget-head {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .widget-head h3 { font-size: 0.88rem; font-weight: 700; }
+    .widget-head p  { font-size: 0.74rem; color: var(--text3); margin-top: 1px; }
+    .widget-body { padding: 18px 20px; }
+    .widget-action { font-size: 0.75rem; color: var(--cu-red); font-weight: 600; padding: 5px 10px; border-radius: 7px; background: var(--cu-red-light); border: none; transition: var(--transition); }
+    .widget-action:hover { background: rgba(192,39,45,0.2); }
+
+    /* ═══════════════════════════════════════════
+       BAR CHART
+    ═══════════════════════════════════════════ */
+    .bar-chart { display: flex; flex-direction: column; gap: 10px; }
+    .bc-row { display: flex; align-items: center; gap: 10px; }
+    .bc-lbl  { font-size: 0.75rem; color: var(--text2); width: 88px; flex-shrink: 0; }
+    .bc-wrap { flex: 1; background: var(--surface3); border-radius: 4px; height: 7px; overflow: hidden; }
+    .bc-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+    .bc-val  { font-size: 0.74rem; color: var(--text); width: 24px; text-align: right; font-family: 'Courier New', monospace; }
+
+    /* ═══════════════════════════════════════════
+       DONUT CHART
+    ═══════════════════════════════════════════ */
+    .donut-wrap { display: flex; align-items: center; gap: 20px; }
+    .donut { position: relative; width: 110px; height: 110px; flex-shrink: 0; }
+    .donut svg { transform: rotate(-90deg); }
+    .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .donut-center span { font-family: 'Courier New', monospace; font-size: 1.3rem; font-weight: 700; }
+    .donut-center small { font-size: 0.6rem; color: var(--text3); }
+    .donut-legend { display: flex; flex-direction: column; gap: 8px; }
+    .dl-item { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; }
+    .dl-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ═══════════════════════════════════════════
+       ACTIVITY TIMELINE
+    ═══════════════════════════════════════════ */
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+    .tl-item { display: flex; gap: 14px; padding: 12px 0; position: relative; }
+    .tl-item:not(:last-child)::before {
+      content: ''; position: absolute; left: 14px; top: 36px; bottom: -12px;
+      width: 1px; background: var(--border);
+    }
+    .tl-ico {
+      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+      background: var(--surface2); border: 2px solid var(--border); z-index: 1;
+    }
+    .tl-content { flex: 1; }
+    .tl-title { font-size: 0.82rem; font-weight: 600; margin-bottom: 2px; }
+    .tl-desc  { font-size: 0.76rem; color: var(--text3); }
+    .tl-time  { font-size: 0.7rem; color: var(--text3); margin-top: 4px; }
+
+    /* ═══════════════════════════════════════════
+       TABLE
+    ═══════════════════════════════════════════ */
+    .tbl-wrap { overflow-x: auto; }
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+    .s-input {
+      padding: 7px 12px 7px 32px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: var(--font); font-size: 0.8rem;
+      outline: none; transition: var(--transition); min-width: 180px;
+    }
+    .s-input:focus { border-color: var(--cu-red); }
+    .s-input::placeholder { color: var(--text3); }
+    .s-wrap { position: relative; }
+    .s-wrap svg { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text3); }
+    .fsel {
+      padding: 7px 12px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: var(--font); font-size: 0.8rem;
+      outline: none; cursor: pointer;
+    }
+    .fsel:focus { border-color: var(--cu-red); }
+    .fsel option { background: var(--surface2); }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 11px 16px; text-align: left; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); background: var(--surface2); border-bottom: 1px solid var(--border); }
+    td { padding: 13px 16px; font-size: 0.82rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+
+    .td-img { width: 38px; height: 38px; border-radius: 8px; object-fit: cover; background: var(--surface2); }
+    .td-name { font-weight: 600; font-size: 0.84rem; }
+    .td-sub  { font-size: 0.73rem; color: var(--text3); margin-top: 1px; }
+
+    /* ═══════════════════════════════════════════
+       BADGES
+    ═══════════════════════════════════════════ */
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 100px; font-size: 0.69rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+    .b-lost     { background: rgba(239,68,68,0.1);    color: #ef4444; }
+    .b-found    { background: var(--green-bg);         color: var(--green); }
+    .b-returned { background: var(--purple-bg);        color: var(--purple); }
+    .b-pending  { background: var(--amber-bg);         color: var(--amber); }
+    .b-approved { background: var(--green-bg);         color: var(--green); }
+    .b-rejected { background: rgba(239,68,68,0.1);    color: #ef4444; }
+    .b-admin    { background: var(--cu-red-light);     color: var(--cu-red); }
+    .b-student  { background: var(--surface2);         color: var(--text2); border: 1px solid var(--border); }
+    .b-security { background: var(--blue-bg);          color: var(--blue); }
+
+    /* ═══════════════════════════════════════════
+       ACTION BUTTONS
+    ═══════════════════════════════════════════ */
+    .btn-act {
+      padding: 5px 11px; border-radius: 7px; border: none; font-family: var(--font);
+      font-size: 0.75rem; font-weight: 600; transition: var(--transition);
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .btn-del  { background: rgba(239,68,68,0.1);  color: #ef4444; }
+    .btn-del:hover  { background: rgba(239,68,68,0.2); }
+    .btn-role { background: var(--cu-red-light);   color: var(--cu-red); }
+    .btn-role:hover { background: rgba(192,39,45,0.2); }
+    .btn-muted{ background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+    .btn-muted:hover { color: var(--text); }
+
+    /* ═══════════════════════════════════════════
+       MODAL
+    ═══════════════════════════════════════════ */
+    .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); width: 100%; max-width: 400px; animation: mpop 0.3s cubic-bezier(0.34,1.56,0.64,1) both; }
+    @keyframes mpop { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
+    .modal-body { padding: 32px; text-align: center; }
+    .modal-ico  { font-size: 2.4rem; margin-bottom: 14px; }
+    .modal-body h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; }
+    .modal-body p  { color: var(--text2); font-size: 0.84rem; line-height: 1.6; margin-bottom: 22px; }
+    .modal-btns { display: flex; gap: 10px; }
+    .modal-btns button { flex: 1; padding: 11px; border-radius: 10px; border: none; font-family: var(--font); font-weight: 600; font-size: 0.88rem; transition: var(--transition); }
+    .m-cancel  { background: var(--surface2); color: var(--text2); border: 1px solid var(--border) !important; }
+    .m-cancel:hover { color: var(--text); }
+    .m-confirm-red { background: var(--cu-red); color: white; }
+    .m-confirm-green { background: var(--green); color: white; }
+
+    /* ═══════════════════════════════════════════
+       TOAST
+    ═══════════════════════════════════════════ */
+    #toast { position: fixed; bottom: 24px; right: 24px; z-index: 999; background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; font-size: 0.82rem; max-width: 300px; box-shadow: var(--shadow-lg); transform: translateY(64px); opacity: 0; transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none; }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ═══════════════════════════════════════════
+       EMPTY / LOADER
+    ═══════════════════════════════════════════ */
+    .loader { width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--cu-red); animation: spin 0.7s linear infinite; margin: 40px auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-cell { text-align: center; padding: 48px; color: var(--text3); font-size: 0.84rem; }
+
+    /* ═══════════════════════════════════════════
+       SETTINGS
+    ═══════════════════════════════════════════ */
+    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .setting-item { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border); }
+    .setting-item:last-child { border-bottom: none; }
+    .setting-label { font-size: 0.84rem; font-weight: 500; }
+    .setting-desc  { font-size: 0.74rem; color: var(--text3); margin-top: 2px; }
+    .toggle { width: 40px; height: 22px; border-radius: 100px; border: none; cursor: pointer; position: relative; transition: background 0.3s; flex-shrink: 0; }
+    .toggle::after { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%; background: white; top: 3px; left: 3px; transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .toggle.on { background: var(--green); }
+    .toggle.on::after { transform: translateX(18px); }
+    .toggle.off { background: var(--surface3); }
+
+    /* ═══════════════════════════════════════════
+       SAAS MICRO-ANIMATIONS
+    ═══════════════════════════════════════════ */
+    @keyframes fadeIn   { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes slideInL { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
+    @keyframes slideInR { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:translateX(0)} }
+    @keyframes scaleIn  { from{opacity:0;transform:scale(0.94)} to{opacity:1;transform:scale(1)} }
+    @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    @keyframes shimmer  { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+    @keyframes countUp  { from{transform:translateY(8px);opacity:0} to{transform:translateY(0);opacity:1} }
+    @keyframes spin     { to{transform:rotate(360deg)} }
+    @keyframes glow     { 0%,100%{box-shadow:0 0 0 rgba(192,39,45,0)} 50%{box-shadow:0 0 24px rgba(192,39,45,0.25)} }
+    @keyframes badgePop { 0%{transform:scale(1)} 40%{transform:scale(1.3)} 100%{transform:scale(1)} }
+
+    /* Page section entrance */
+    .page-section.active { animation: fadeIn 0.35s ease both; }
+
+    /* KPI card entrance stagger */
+    .kpi-card { animation: scaleIn 0.4s ease both; }
+    .kpi-card:nth-child(1) { animation-delay: 0.04s; }
+    .kpi-card:nth-child(2) { animation-delay: 0.08s; }
+    .kpi-card:nth-child(3) { animation-delay: 0.12s; }
+    .kpi-card:nth-child(4) { animation-delay: 0.16s; }
+
+    /* KPI card — hover lift with glow */
+    .kpi-card { transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s; }
+    .kpi-card:hover { transform: translateY(-4px) scale(1.01); box-shadow: var(--shadow-lg); border-color: var(--border2); }
+    .kpi-card.red:hover    { box-shadow: 0 8px 32px rgba(192,39,45,0.18); }
+    .kpi-card.green:hover  { box-shadow: 0 8px 32px rgba(34,197,94,0.15); }
+    .kpi-card.amber:hover  { box-shadow: 0 8px 32px rgba(245,158,11,0.15); }
+    .kpi-card.purple:hover { box-shadow: 0 8px 32px rgba(139,92,246,0.15); }
+    .kpi-card.blue:hover   { box-shadow: 0 8px 32px rgba(59,130,246,0.15); }
+
+    /* KPI number count-up animation */
+    .kpi-num { animation: countUp 0.5s ease both; }
+
+    /* Widget hover */
+    .widget { transition: box-shadow 0.25s, border-color 0.25s; }
+    .widget:hover { box-shadow: var(--shadow); border-color: var(--border2); }
+
+    /* Table row hover */
+    tr { transition: background 0.15s; }
+    tr:hover td { background: var(--surface2) !important; }
+
+    /* Sidebar item indicator slide */
+    .s-item::before { transition: all 0.2s ease; }
+    .s-item { transition: background 0.18s, color 0.18s; }
+
+    /* Badge pop on update */
+    .s-badge { transition: transform 0.2s; }
+    .s-badge.pop { animation: badgePop 0.3s ease; }
+
+    /* Button press effect */
+    .btn-act:active { transform: scale(0.96); }
+    .tb-btn:active  { transform: scale(0.97); }
+
+    /* Topbar slide-in */
+    .topbar { animation: slideInR 0.3s ease both; }
+
+    /* Sidebar slide-in */
+    .sidebar { animation: slideInL 0.3s ease both; }
+
+    /* Skeleton loading shimmer */
+    .shimmer {
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+    }
+
+    /* Activity timeline dot pulse */
+    .tl-ico { transition: transform 0.2s, box-shadow 0.2s; }
+    .tl-ico:hover { transform: scale(1.15); box-shadow: 0 0 0 4px var(--border); }
+
+    /* KPI bar fill animation trigger class */
+    .kpi-bar-fill { transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+
+    /* Office page items */
+    .office-item-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px; display: flex; align-items: center; gap: 14px;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      animation: fadeIn 0.35s ease both;
+    }
+    .office-item-card:hover { transform: translateY(-2px); border-color: var(--border2); box-shadow: var(--shadow); }
+    .office-item-img { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; background: var(--surface2); flex-shrink: 0; }
+    .office-item-name { font-weight: 700; font-size: 0.88rem; margin-bottom: 3px; }
+    .office-item-sub  { font-size: 0.75rem; color: var(--text3); }
+    .office-item-meta { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+    .office-meta-tag  { font-size: 0.7rem; padding: 2px 8px; border-radius: 100px; background: var(--surface2); color: var(--text2); }
+    .office-item-actions { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
+    .office-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+
+    /* ═══════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════ */
+    @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 900px)  { .grid-2, .grid-3 { grid-template-columns: 1fr; } .settings-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 768px)  { .sidebar { display: none; } .main { margin-left: 0; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 480px)  { .kpi-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-top">
+    <img class="s-logo" src="logo.jpg" alt="CU"/>
+    <div>
+      <div class="s-brand"><span class="nl">Lost</span><span class="ns">2</span><span class="nf">Found</span></div>
+      <div class="s-sub">Admin Panel</div>
+    </div>
+  </div>
+
+  <div class="s-section">
+    <div class="s-section-lbl">Overview</div>
+    <button class="s-item active" onclick="showPage('dashboard', this)">
+      <span class="s-ico">📊</span> Dashboard
+    </button>
+  </div>
+
+  <div class="s-section">
+    <div class="s-section-lbl">Manage</div>
+    <button class="s-item" onclick="showPage('items', this)">
+      <span class="s-ico">📦</span> All Items
+      <span class="s-badge" id="nb-items">0</span>
+    </button>
+    <button class="s-item" onclick="showPage('claims', this)">
+      <span class="s-ico">📋</span> All Claims
+      <span class="s-badge" id="nb-claims">0</span>
+    </button>
+    <button class="s-item" onclick="showPage('users', this)">
+      <span class="s-ico">👥</span> Users
+    </button>
+    <button class="s-item" onclick="showPage('office', this)">
+      <span class="s-ico">🏢</span> Main Office
+      <span class="s-badge green" id="nb-office">0</span>
+    </button>
+  </div>
+
+  <div class="s-section">
+    <div class="s-section-lbl">System</div>
+    <button class="s-item" onclick="showPage('activity', this)">
+      <span class="s-ico">⚡</span> Activity
+    </button>
+    <button class="s-item" onclick="showPage('settings', this)">
+      <span class="s-ico">⚙️</span> Settings
+    </button>
+    <a class="s-item" href="index.html">
+      <span class="s-ico">🏠</span> Main Portal
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="s-user">
+      <div class="s-avatar" id="s-av">A</div>
+      <div>
+        <div class="s-user-name" id="s-name">Admin</div>
+        <div class="s-user-role" id="s-role">Administrator</div>
+      </div>
+      <button class="s-logout" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="page-title" id="page-title">Dashboard</span>
+      <span class="breadcrumb" id="page-breadcrumb">/ Overview</span>
+    </div>
+    <div class="topbar-right">
+      <button class="tb-btn" onclick="loadAll()">🔄 Refresh</button>
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" title="Toggle theme">🌙</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="page-section active" id="page-dashboard">
+
+      <!-- KPI row 1 -->
+      <div class="kpi-grid">
+        <div class="kpi-card red">
+          <div class="kpi-top">
+            <div class="kpi-ico" style="background:var(--cu-red-light)">📦</div>
+            <span class="kpi-trend trend-neu" id="kpi-trend-total">Total</span>
+          </div>
+          <div class="kpi-num" id="k-total">0</div>
+          <div class="kpi-label">Total Items Reported</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-bar-total" style="background:var(--cu-red);width:0%"></div></div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-top">
+            <div class="kpi-ico" style="background:var(--green-bg)">✅</div>
+            <span class="kpi-trend trend-up" id="kpi-trend-found">Found</span>
+          </div>
+          <div class="kpi-num" style="color:var(--green)" id="k-found">0</div>
+          <div class="kpi-label">Items Found</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-bar-found" style="background:var(--green);width:0%"></div></div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-top">
+            <div class="kpi-ico" style="background:var(--amber-bg)">🔍</div>
+            <span class="kpi-trend trend-down" id="kpi-trend-lost">Lost</span>
+          </div>
+          <div class="kpi-num" style="color:var(--amber)" id="k-lost">0</div>
+          <div class="kpi-label">Still Missing</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-bar-lost" style="background:var(--amber);width:0%"></div></div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-top">
+            <div class="kpi-ico" style="background:var(--purple-bg)">🎁</div>
+            <span class="kpi-trend trend-up" id="kpi-trend-ret">Returned</span>
+          </div>
+          <div class="kpi-num" style="color:var(--purple)" id="k-returned">0</div>
+          <div class="kpi-label">Items Returned</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-bar-ret" style="background:var(--purple);width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- KPI row 2 -->
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:22px">
+        <div class="kpi-card blue">
+          <div class="kpi-top"><div class="kpi-ico" style="background:var(--blue-bg)">⏳</div><span class="kpi-trend trend-neu">Claims</span></div>
+          <div class="kpi-num" style="color:var(--blue)" id="k-pending">0</div>
+          <div class="kpi-label">Pending Claims</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-top"><div class="kpi-ico" style="background:var(--green-bg)">👥</div><span class="kpi-trend trend-up">Users</span></div>
+          <div class="kpi-num" style="color:var(--green)" id="k-users">0</div>
+          <div class="kpi-label">Registered Students</div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-top"><div class="kpi-ico" style="background:var(--amber-bg)">📈</div><span class="kpi-trend trend-up">Rate</span></div>
+          <div class="kpi-num" style="color:var(--amber);font-size:1.5rem" id="k-rate">0%</div>
+          <div class="kpi-label">Return Rate</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-top"><div class="kpi-ico" style="background:var(--cu-red-light)">🏫</div><span class="kpi-trend trend-neu">CU</span></div>
+          <div class="kpi-num" style="color:var(--cu-red);font-size:1.1rem;font-family:var(--font);font-weight:800">CU Campus</div>
+          <div class="kpi-label">Chandigarh University</div>
+        </div>
+      </div>
+
+      <!-- Charts + Timeline -->
+      <div class="grid-3">
+        <div class="widget">
+          <div class="widget-head">
+            <div><h3>Items by Category</h3><p>Distribution across all categories</p></div>
+          </div>
+          <div class="widget-body">
+            <div class="bar-chart" id="cat-chart"><div class="loader"></div></div>
+          </div>
+        </div>
+        <div class="widget">
+          <div class="widget-head">
+            <div><h3>Status Overview</h3><p>Current item breakdown</p></div>
+          </div>
+          <div class="widget-body">
+            <div class="donut-wrap">
+              <div class="donut">
+                <svg width="110" height="110" viewBox="0 0 110 110">
+                  <circle cx="55" cy="55" r="40" fill="none" stroke="var(--surface3)" stroke-width="12"/>
+                  <circle cx="55" cy="55" r="40" fill="none" stroke="#ef4444"     stroke-width="12" stroke-dasharray="251" stroke-dashoffset="251" id="d-lost"     stroke-linecap="round"/>
+                  <circle cx="55" cy="55" r="40" fill="none" stroke="var(--green)"stroke-width="12" stroke-dasharray="251" stroke-dashoffset="251" id="d-found"    stroke-linecap="round"/>
+                  <circle cx="55" cy="55" r="40" fill="none" stroke="var(--purple)"stroke-width="12"stroke-dasharray="251" stroke-dashoffset="251" id="d-returned" stroke-linecap="round"/>
+                </svg>
+                <div class="donut-center"><span id="d-total">0</span><small>Total</small></div>
+              </div>
+              <div class="donut-legend">
+                <div class="dl-item"><div class="dl-dot" style="background:#ef4444"></div>Lost — <b id="dl-lost">0</b></div>
+                <div class="dl-item"><div class="dl-dot" style="background:var(--green)"></div>Found — <b id="dl-found">0</b></div>
+                <div class="dl-item"><div class="dl-dot" style="background:var(--purple)"></div>Returned — <b id="dl-ret">0</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent + Activity -->
+      <div class="grid-2">
+        <div class="widget">
+          <div class="widget-head">
+            <div><h3>Recent Reports</h3><p>Latest items submitted</p></div>
+            <button class="widget-action" onclick="showPage('items', document.querySelector('.s-item:nth-child(2)'))">View all</button>
+          </div>
+          <table>
+            <thead><tr><th>Item</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody id="recent-body"><tr><td colspan="3" class="empty-cell"><div class="loader"></div></td></tr></tbody>
+          </table>
+        </div>
+        <div class="widget">
+          <div class="widget-head">
+            <div><h3>Activity Feed</h3><p>Recent system events</p></div>
+          </div>
+          <div class="widget-body" style="max-height:280px;overflow-y:auto">
+            <div class="timeline" id="activity-feed"><div class="loader"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ITEMS PAGE ══ -->
+    <div class="page-section" id="page-items">
+      <div class="widget">
+        <div class="filter-row">
+          <div class="s-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input class="s-input" id="i-search" placeholder="Search items…" oninput="renderItems()"/>
+          </div>
+          <select class="fsel" id="i-status" onchange="renderItems()">
+            <option value="">All Status</option>
+            <option value="lost">Lost</option>
+            <option value="found">Found</option>
+            <option value="returned">Returned</option>
+          </select>
+          <select class="fsel" id="i-cat" onchange="renderItems()">
+            <option value="">All Categories</option>
+            <option value="electronics">Electronics</option>
+            <option value="clothing">Clothing</option>
+            <option value="documents">Documents</option>
+            <option value="accessories">Accessories</option>
+            <option value="valuables">Valuables</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Item</th><th>Reporter</th><th>Location</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="items-body"><tr><td colspan="6" class="empty-cell"><div class="loader"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CLAIMS PAGE ══ -->
+    <div class="page-section" id="page-claims">
+      <div class="widget">
+        <div class="filter-row">
+          <select class="fsel" id="c-status" onchange="renderClaims()">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Item</th><th>Claimed By</th><th>Proof</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="claims-body"><tr><td colspan="6" class="empty-cell"><div class="loader"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ USERS PAGE ══ -->
+    <div class="page-section" id="page-users">
+      <div class="widget">
+        <div class="filter-row">
+          <div class="s-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input class="s-input" id="u-search" placeholder="Search users…" oninput="renderUsers()"/>
+          </div>
+          <select class="fsel" id="u-role" onchange="renderUsers()">
+            <option value="">All Roles</option>
+            <option value="student">Students</option>
+            <option value="admin">Admins</option>
+            <option value="security">Security</option>
+          </select>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>User</th><th>Roll No</th><th>Phone</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+            <tbody id="users-body"><tr><td colspan="6" class="empty-cell"><div class="loader"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ACTIVITY PAGE ══ -->
+    <div class="page-section" id="page-activity">
+      <div class="widget">
+        <div class="widget-head"><div><h3>Full Activity Timeline</h3><p>All system events in chronological order</p></div></div>
+        <div class="widget-body">
+          <div class="timeline" id="full-timeline"><div class="loader"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SETTINGS PAGE ══ -->
+    <div class="page-section" id="page-settings">
+      <div class="settings-grid">
+        <div class="widget">
+          <div class="widget-head"><div><h3>Appearance</h3><p>Customize the dashboard look</p></div></div>
+          <div class="widget-body">
+            <div class="setting-item">
+              <div><div class="setting-label">Dark Mode</div><div class="setting-desc">Toggle between dark and light theme</div></div>
+              <button class="toggle on" id="dark-toggle" onclick="toggleTheme()"></button>
+            </div>
+            <div class="setting-item">
+              <div><div class="setting-label">Compact Sidebar</div><div class="setting-desc">Reduce sidebar width</div></div>
+              <button class="toggle off" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button>
+            </div>
+          </div>
+        </div>
+        <div class="widget">
+          <div class="widget-head"><div><h3>Notifications</h3><p>Email notification settings</p></div></div>
+          <div class="widget-body">
+            <div class="setting-item">
+              <div><div class="setting-label">New Claim Alerts</div><div class="setting-desc">Email when new claim submitted</div></div>
+              <button class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button>
+            </div>
+            <div class="setting-item">
+              <div><div class="setting-label">Match Alerts</div><div class="setting-desc">Email when AI finds a match</div></div>
+              <button class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button>
+            </div>
+            <div class="setting-item">
+              <div><div class="setting-label">Weekly Report</div><div class="setting-desc">Summary email every Monday</div></div>
+              <button class="toggle off" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button>
+            </div>
+          </div>
+        </div>
+        <div class="widget">
+          <div class="widget-head"><div><h3>Portal Info</h3></div></div>
+          <div class="widget-body">
+            <div class="setting-item"><div><div class="setting-label">Portal Name</div><div class="setting-desc">Lost2Found — CU</div></div></div>
+            <div class="setting-item"><div><div class="setting-label">University</div><div class="setting-desc">Chandigarh University</div></div></div>
+            <div class="setting-item"><div><div class="setting-label">Version</div><div class="setting-desc">v2.0.0 — Major Project</div></div></div>
+            <div class="setting-item"><div><div class="setting-label">Email</div><div class="setting-desc" id="s-email">—</div></div></div>
+          </div>
+        </div>
+        <div class="widget">
+          <div class="widget-head"><div><h3>Quick Actions</h3></div></div>
+          <div class="widget-body" style="display:flex;flex-direction:column;gap:10px">
+            <a href="index.html" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:9px;background:var(--surface2);border:1px solid var(--border);font-size:0.83rem;font-weight:500;transition:var(--transition)" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">🏠 Go to Main Portal</a>
+            <a href="claims.html" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:9px;background:var(--surface2);border:1px solid var(--border);font-size:0.83rem;font-weight:500;transition:var(--transition)" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">📋 My Claims</a>
+            <button onclick="logout()" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:9px;background:var(--cu-red-light);border:1px solid rgba(192,39,45,0.2);font-size:0.83rem;font-weight:500;color:var(--cu-red);width:100%;font-family:var(--font);cursor:pointer">🚪 Sign Out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ OFFICE PAGE ══ -->
+    <div class="page-section" id="page-office">
+      <!-- Office KPI row -->
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:22px">
+        <div class="kpi-card red">
+          <div class="kpi-top"><div class="kpi-ico" style="background:var(--cu-red-light)">🏢</div><span class="kpi-trend trend-neu">At Office</span></div>
+          <div class="kpi-num" id="off-k-total" style="color:var(--cu-red)">0</div>
+          <div class="kpi-label">Items at E2 Room 201</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-top"><div class="kpi-ico" style="background:var(--green-bg)">✅</div><span class="kpi-trend trend-up">Returned</span></div>
+          <div class="kpi-num" id="off-k-returned" style="color:var(--green)">0</div>
+          <div class="kpi-label">Released to Owners</div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-top"><div class="kpi-ico" style="background:var(--amber-bg)">⏳</div><span class="kpi-trend trend-neu">Pending</span></div>
+          <div class="kpi-num" id="off-k-pending" style="color:var(--amber)">0</div>
+          <div class="kpi-label">Awaiting Claim</div>
+        </div>
+      </div>
+
+      <!-- Office address banner -->
+      <div style="background:linear-gradient(135deg,var(--cu-red),#8f1a1e);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:22px;display:flex;align-items:center;gap:16px">
+        <div style="font-size:2rem">🏢</div>
+        <div>
+          <div style="font-weight:800;font-size:1rem;color:white">Main Office — Lost &amp; Found Drop Point</div>
+          <div style="font-size:0.83rem;color:rgba(255,255,255,0.75);margin-top:3px">E2 Block, 2nd Floor, Room 201 &nbsp;·&nbsp; Mon–Sat 9:00 AM – 5:00 PM &nbsp;·&nbsp; Security &amp; Admin Staff</div>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.6)">Items submitted by students are managed here</div>
+        </div>
+      </div>
+
+      <!-- Office items widget -->
+      <div class="widget">
+        <div class="widget-head">
+          <div><h3>Items Currently at Office</h3><p>All items students submitted to E2 Room 201</p></div>
+          <button class="widget-action" onclick="loadOfficeItems()">🔄 Refresh</button>
+        </div>
+        <div style="padding:18px">
+          <div class="office-grid" id="office-items-grid">
+            <div style="grid-column:1/-1;text-align:center;padding:40px"><div class="loader"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal-box">
+    <div class="modal-body">
+      <div class="modal-ico" id="m-ico">⚠️</div>
+      <h3 id="m-title">Are you sure?</h3>
+      <p id="m-msg">This action cannot be undone.</p>
+      <div class="modal-btns">
+        <button class="m-cancel" onclick="window.closeModal()">Cancel</button>
+        <button id="m-confirm-btn" class="m-confirm-red" onclick="window.doConfirm()">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"><span id="t-icon">✓</span> <span id="t-msg"></span></div>
+
+<script>
+  // ── CONFIG ───────────────────────────────────
+  const API   = '/api';
+  const token = localStorage.getItem('l2f_token');
+  const user  = JSON.parse(localStorage.getItem('l2f_user') || 'null');
+
+  // ── THEME ────────────────────────────────────
+  let isDark = localStorage.getItem('l2f_theme') !== 'light';
+  function applyTheme() {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    document.getElementById('theme-btn').textContent = isDark ? '🌙' : '☀️';
+    const dt = document.getElementById('dark-toggle');
+    if (dt) { dt.className = 'toggle ' + (isDark ? 'on' : 'off'); }
+    localStorage.setItem('l2f_theme', isDark ? 'dark' : 'light');
+  }
+  function toggleTheme() { isDark = !isDark; applyTheme(); }
+  applyTheme();
+
+  // ── GUARD ────────────────────────────────────
+  if (!token || !user) {
+    window.location.replace('auth.html');
+  } else if (user.role !== 'admin' && user.role !== 'security') {
+    alert('Admin access only.');
+    window.location.replace('index.html');
+  } else {
+    document.body.classList.add('ready');
+    document.getElementById('s-name').textContent = user.name;
+    document.getElementById('s-role').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+    document.getElementById('s-av').textContent   = user.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const se = document.getElementById('s-email');
+    if (se) se.textContent = user.email || '—';
+  }
+
+  const H = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+  let allItems = [], allClaims = [], allUsers = [];
+
+  // ── HELPERS ──────────────────────────────────
+  const fmtDate  = d => new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+  const fmtTime  = d => new Date(d).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+  const locFmt   = l => ({ library:'Library', cafeteria:'Cafeteria', auditorium:'Auditorium', gym:'Gym', dorm:'Hostel', parking:'Parking', classroom:'Classroom', lab:'Lab' }[l]||l);
+  const capFirst = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+  const initials = n => n ? n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() : '?';
+
+  function toast(msg, ok=true) {
+    const t = document.getElementById('toast');
+    document.getElementById('t-msg').textContent  = msg;
+    document.getElementById('t-icon').textContent = ok ? '✓' : '✕';
+    t.className = 'show';
+    setTimeout(() => t.className = '', 3200);
+  }
+  function logout() { localStorage.removeItem('l2f_token'); localStorage.removeItem('l2f_user'); window.location.replace('auth.html'); }
+  function animNum(el, n) { let c=0,s=Math.max(1,Math.ceil(n/40)); const iv=setInterval(()=>{c=Math.min(c+s,n);el.textContent=c;if(c>=n)clearInterval(iv);},28); }
+
+  // ── PAGE NAV ─────────────────────────────────
+  const pageTitles = { dashboard:'Dashboard', items:'All Items', claims:'All Claims', users:'User Management', office:'Main Office', activity:'Activity Timeline', settings:'Settings' };
+  function showPage(page, btn) {
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.s-item').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    if (btn) btn.classList.add('active');
+    document.getElementById('page-title').textContent = pageTitles[page] || page;
+    document.getElementById('page-breadcrumb').textContent = '/ ' + (pageTitles[page] || page);
+    if (page === 'items')    renderItems();
+    if (page === 'claims')   renderClaims();
+    if (page === 'users')    renderUsers();
+    if (page === 'activity') renderFullTimeline();
+    if (page === 'office')   loadOfficeItems();
+  }
+
+  // ── MODAL ────────────────────────────────────
+  window.pendingFn = null;
+  window.openConfirm = function(ico, title, msg, btnTxt, btnClass, fn) {
+    window.pendingFn = fn;
+    document.getElementById('m-ico').textContent   = ico;
+    document.getElementById('m-title').textContent = title;
+    document.getElementById('m-msg').textContent   = msg;
+    const btn = document.getElementById('m-confirm-btn');
+    btn.textContent = btnTxt;
+    btn.className   = btnClass || 'm-confirm-red';
+    document.getElementById('confirm-modal').classList.add('open');
+  };
+  window.closeModal = function() { document.getElementById('confirm-modal').classList.remove('open'); window.pendingFn = null; };
+  window.doConfirm  = async function() { const fn = window.pendingFn; window.closeModal(); if (fn) await fn(); };
+  document.getElementById('confirm-modal').addEventListener('click', e => { if (e.target.id === 'confirm-modal') window.closeModal(); });
+
+  // ── LOAD ALL ─────────────────────────────────
+  async function loadAll() {
+    try {
+      const [sR, iR, cR, uR] = await Promise.all([
+        fetch(`${API}/admin/stats`,  { headers: H }),
+        fetch(`${API}/admin/items`,  { headers: H }),
+        fetch(`${API}/admin/claims`, { headers: H }),
+        fetch(`${API}/admin/users`,  { headers: H })
+      ]);
+      if (!sR.ok) { toast('Access denied.', false); return; }
+      const stats = await sR.json();
+      allItems  = await iR.json();
+      allClaims = await cR.json();
+      allUsers  = await uR.json();
+
+      updateKPIs(stats);
+      renderCatChart();
+      renderDonut();
+      renderRecent();
+      renderActivityFeed();
+
+      const officeCount = allItems.filter(i => i.submittedToOffice && !i.isResolved).length;
+      const pendingClaims = allClaims.filter(c => c.status === 'pending').length;
+
+      // Update badges with pop animation
+      const updateBadge = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = val; el.classList.add('pop'); setTimeout(()=>el.classList.remove('pop'), 300); }
+      };
+      updateBadge('nb-items',  allItems.length);
+      updateBadge('nb-claims', pendingClaims);
+      updateBadge('nb-office', officeCount);
+
+      // Office KPIs
+      animNum(document.getElementById('off-k-total'),    officeCount);
+      animNum(document.getElementById('off-k-returned'), allItems.filter(i=>i.status==='returned').length);
+      animNum(document.getElementById('off-k-pending'),  officeCount);
+    } catch(e) { toast('Failed to load data.', false); }
+  }
+
+  // ── KPIs ─────────────────────────────────────
+  function updateKPIs(s) {
+    animNum(document.getElementById('k-total'),   s.total    || 0);
+    animNum(document.getElementById('k-found'),   s.found    || 0);
+    animNum(document.getElementById('k-lost'),    s.lost     || 0);
+    animNum(document.getElementById('k-returned'),s.returned || 0);
+    animNum(document.getElementById('k-pending'), s.pendingClaims || 0);
+    animNum(document.getElementById('k-users'),   s.totalUsers    || 0);
+    const rate = s.total > 0 ? Math.round((s.returned/s.total)*100) : 0;
+    document.getElementById('k-rate').textContent = rate + '%';
+    // KPI bars
+    const total = s.total || 1;
+    setTimeout(() => {
+      document.getElementById('kpi-bar-total').style.width = '100%';
+      document.getElementById('kpi-bar-found').style.width = ((s.found||0)/total*100)+'%';
+      document.getElementById('kpi-bar-lost').style.width  = ((s.lost||0)/total*100)+'%';
+      document.getElementById('kpi-bar-ret').style.width   = ((s.returned||0)/total*100)+'%';
+    }, 200);
+  }
+
+  // ── CATEGORY CHART ───────────────────────────
+  function renderCatChart() {
+    const cats   = ['electronics','clothing','documents','accessories','valuables','other'];
+    const colors = { electronics:'var(--blue)', clothing:'var(--purple)', documents:'#22d3ee', accessories:'var(--green)', valuables:'var(--amber)', other:'var(--text3)' };
+    const counts = {};
+    cats.forEach(c => counts[c] = allItems.filter(i=>i.category===c).length);
+    const max = Math.max(...Object.values(counts), 1);
+    document.getElementById('cat-chart').innerHTML = cats.map(c => `
+      <div class="bc-row">
+        <div class="bc-lbl">${capFirst(c)}</div>
+        <div class="bc-wrap"><div class="bc-fill" style="width:${(counts[c]/max)*100}%;background:${colors[c]}"></div></div>
+        <div class="bc-val">${counts[c]}</div>
+      </div>`).join('');
+  }
+
+  // ── DONUT ────────────────────────────────────
+  function renderDonut() {
+    const total = allItems.length || 1;
+    const l = allItems.filter(i=>i.status==='lost').length;
+    const f = allItems.filter(i=>i.status==='found').length;
+    const r = allItems.filter(i=>i.status==='returned').length;
+    const circ = 251;
+    const setD = (id, n, rot) => {
+      const el = document.getElementById(id);
+      if (el) { el.style.strokeDashoffset = circ - (n/total)*circ; el.style.transform = `rotate(${rot}deg)`; el.style.transformOrigin = '55px 55px'; }
+    };
+    setD('d-lost',    l, 0);
+    setD('d-found',   f, (l/total)*360);
+    setD('d-returned',r, ((l+f)/total)*360);
+    document.getElementById('d-total').textContent = allItems.length;
+    document.getElementById('dl-lost').textContent  = l;
+    document.getElementById('dl-found').textContent = f;
+    document.getElementById('dl-ret').textContent   = r;
+  }
+
+  // ── RECENT ITEMS ─────────────────────────────
+  function renderRecent() {
+    const recent = [...allItems].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,6);
+    document.getElementById('recent-body').innerHTML = recent.length
+      ? recent.map(i=>`<tr>
+          <td><div style="display:flex;align-items:center;gap:9px">
+            <img class="td-img" src="${i.image}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2238%22 height=%2238%22><rect width=%2238%22 height=%2238%22 fill=%22%231a1a28%22/><text x=%2250%%22 y=%2255%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23444%22 font-size=%2216%22>📦</text></svg>'" />
+            <div><div class="td-name">${i.name}</div><div class="td-sub">${capFirst(i.category)}</div></div>
+          </div></td>
+          <td><span class="badge b-${i.status}">${i.status}</span></td>
+          <td style="color:var(--text3);font-size:0.77rem">${fmtDate(i.createdAt)}</td>
+        </tr>`).join('')
+      : `<tr><td colspan="3" class="empty-cell">No items yet</td></tr>`;
+  }
+
+  // ── ACTIVITY FEED ────────────────────────────
+  function buildTimeline(items, claims) {
+    const events = [];
+    [...items].slice(0,6).forEach(i => events.push({
+      ico: i.status==='found'?'✅':'🔍', color: i.status==='found'?'var(--green)':'var(--amber)',
+      title: `${i.status==='found'?'Found':'Lost'} item reported`,
+      desc: `${i.name} — ${locFmt(i.location)}`, time: i.createdAt
+    }));
+    [...claims].slice(0,4).forEach(c => events.push({
+      ico: c.status==='approved'?'🎁':c.status==='rejected'?'❌':'⏳',
+      color: c.status==='approved'?'var(--green)':c.status==='rejected'?'#ef4444':'var(--amber)',
+      title: `Claim ${c.status}`, desc: `${c.item?.name || 'Item'} — ${c.claimerName || 'User'}`, time: c.createdAt
+    }));
+    events.sort((a,b)=>new Date(b.time)-new Date(a.time));
+    return events;
+  }
+  function renderActivityFeed() {
+    const events = buildTimeline(allItems, allClaims).slice(0, 8);
+    document.getElementById('activity-feed').innerHTML = events.length
+      ? events.map(e=>`<div class="tl-item">
+          <div class="tl-ico" style="border-color:${e.color}">${e.ico}</div>
+          <div class="tl-content">
+            <div class="tl-title">${e.title}</div>
+            <div class="tl-desc">${e.desc}</div>
+            <div class="tl-time">${fmtDate(e.time)} · ${fmtTime(e.time)}</div>
+          </div>
+        </div>`).join('')
+      : '<p style="color:var(--text3);font-size:0.82rem">No activity yet.</p>';
+  }
+  function renderFullTimeline() {
+    const events = buildTimeline(allItems, allClaims);
+    document.getElementById('full-timeline').innerHTML = events.length
+      ? events.map(e=>`<div class="tl-item">
+          <div class="tl-ico" style="border-color:${e.color}">${e.ico}</div>
+          <div class="tl-content">
+            <div class="tl-title">${e.title}</div>
+            <div class="tl-desc">${e.desc}</div>
+            <div class="tl-time">${fmtDate(e.time)} · ${fmtTime(e.time)}</div>
+          </div>
+        </div>`).join('')
+      : '<p style="color:var(--text3);font-size:0.82rem">No activity yet.</p>';
+  }
+
+  // ── ITEMS TABLE ──────────────────────────────
+  function renderItems() {
+    const s = document.getElementById('i-status').value;
+    const c = document.getElementById('i-cat').value;
+    const q = document.getElementById('i-search').value.toLowerCase();
+    let data = allItems;
+    if (s) data = data.filter(i=>i.status===s);
+    if (c) data = data.filter(i=>i.category===c);
+    if (q) data = data.filter(i=>i.name.toLowerCase().includes(q)||i.description.toLowerCase().includes(q));
+    document.getElementById('items-body').innerHTML = data.length
+      ? data.map(i=>`<tr>
+          <td><div style="display:flex;align-items:center;gap:9px">
+            <img class="td-img" src="${i.image}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2238%22 height=%2238%22><rect width=%2238%22 height=%2238%22 fill=%22%231a1a28%22/><text x=%2250%%22 y=%2255%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23444%22 font-size=%2216%22>📦</text></svg>'" />
+            <div><div class="td-name">${i.name}</div><div class="td-sub">${i.description.slice(0,36)}…</div></div>
+          </div></td>
+          <td><div class="td-name">${i.reportedBy?.name||i.reporterName||'—'}</div><div class="td-sub">${i.reportedBy?.email||i.contact||''}</div></td>
+          <td style="color:var(--text2);font-size:0.8rem">${locFmt(i.location)}</td>
+          <td><span class="badge b-${i.status}">${i.status}</span></td>
+          <td style="color:var(--text3);font-size:0.77rem">${fmtDate(i.createdAt)}</td>
+          <td><button class="btn-act btn-del" data-id="${i._id}" data-name="${i.name}" onclick="deleteItem(this)">🗑 Delete</button></td>
+        </tr>`).join('')
+      : `<tr><td colspan="6" class="empty-cell">No items found</td></tr>`;
+  }
+
+  // ── CLAIMS TABLE ─────────────────────────────
+  function renderClaims() {
+    const s = document.getElementById('c-status').value;
+    let data = s ? allClaims.filter(c=>c.status===s) : allClaims;
+    document.getElementById('claims-body').innerHTML = data.length
+      ? data.map(c=>`<tr>
+          <td><div class="td-name">${c.item?.name||'Deleted'}</div><div class="td-sub">${c.item?.location?locFmt(c.item.location):''}</div></td>
+          <td><div class="td-name">${c.claimedBy?.name||c.claimerName||'—'}</div><div class="td-sub">${c.claimedBy?.email||c.claimerContact||''}</div></td>
+          <td style="max-width:160px;font-size:0.77rem;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">"${c.proof}"</td>
+          <td><span class="badge b-${c.status}">${c.status}</span></td>
+          <td style="color:var(--text3);font-size:0.77rem">${fmtDate(c.createdAt)}</td>
+          <td style="display:flex;gap:6px">
+            ${c.status==='pending'
+              ? `<button class="btn-act btn-role" data-id="${c._id}" onclick="approveClaim(this)">✅ Approve</button>
+                 <button class="btn-act btn-del"  data-id="${c._id}" onclick="rejectClaim(this)">❌ Reject</button>`
+              : `<span style="font-size:0.75rem;color:var(--text3)">${capFirst(c.status)}</span>`}
+          </td>
+        </tr>`).join('')
+      : `<tr><td colspan="6" class="empty-cell">No claims found</td></tr>`;
+  }
+
+  // ── USERS TABLE ──────────────────────────────
+  function renderUsers() {
+    const r = document.getElementById('u-role').value;
+    const q = document.getElementById('u-search').value.toLowerCase();
+    let data = allUsers;
+    if (r) data = data.filter(u=>u.role===r);
+    if (q) data = data.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q));
+    document.getElementById('users-body').innerHTML = data.length
+      ? data.map(u=>`<tr>
+          <td><div style="display:flex;align-items:center;gap:9px">
+            <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--cu-red),#7a1a1e);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem;color:white;flex-shrink:0">${initials(u.name)}</div>
+            <div><div class="td-name">${u.name}</div><div class="td-sub">${u.email}</div></div>
+          </div></td>
+          <td style="color:var(--text2);font-size:0.8rem">${u.rollNo||'—'}</td>
+          <td style="color:var(--text2);font-size:0.8rem">${u.phone||'—'}</td>
+          <td><span class="badge b-${u.role}">${u.role}</span></td>
+          <td style="color:var(--text3);font-size:0.77rem">${fmtDate(u.createdAt)}</td>
+          <td style="display:flex;gap:6px;flex-wrap:wrap">
+            ${u._id !== user.id
+              ? `${u.role==='student'
+                  ? `<button class="btn-act btn-role" data-id="${u._id}" data-name="${u.name}" onclick="makeAdmin(this)">👑 Admin</button>`
+                  : `<button class="btn-act btn-muted" data-id="${u._id}" data-name="${u.name}" onclick="makeStudent(this)">👤 Student</button>`}
+                 <button class="btn-act btn-del" data-id="${u._id}" data-name="${u.name}" onclick="deleteUser(this)">🗑</button>`
+              : `<span style="font-size:0.75rem;color:var(--text3)">You</span>`}
+          </td>
+        </tr>`).join('')
+      : `<tr><td colspan="6" class="empty-cell">No users found</td></tr>`;
+  }
+
+  // ── ACTIONS ──────────────────────────────────
+  function deleteItem(btn) {
+    const id = btn.dataset.id, name = btn.dataset.name;
+    window.openConfirm('🗑️', `Delete "${name}"?`, 'This permanently deletes the item and all related claims.', '🗑 Delete', 'm-confirm-red', async () => {
+      try {
+        const r = await fetch(`${API}/admin/items/${id}`, { method:'DELETE', headers:H });
+        if (r.ok) { toast(`"${name}" deleted.`); allItems = allItems.filter(i=>i._id!==id); renderItems(); document.getElementById('nb-items').textContent = allItems.length; }
+        else toast('Delete failed.', false);
+      } catch { toast('Server error.', false); }
+    });
+  }
+
+  async function approveClaim(btn) {
+    const id = btn.dataset.id;
+    try {
+      const r = await fetch(`${API}/claims/${id}/approve`, { method:'PUT', headers:H });
+      if (r.ok) { toast('✅ Claim approved!'); loadAll(); }
+      else toast('Failed.', false);
+    } catch { toast('Server error.', false); }
+  }
+
+  async function rejectClaim(btn) {
+    const id = btn.dataset.id;
+    try {
+      const r = await fetch(`${API}/claims/${id}/reject`, { method:'PUT', headers:H });
+      if (r.ok) { toast('❌ Claim rejected.'); loadAll(); }
+      else toast('Failed.', false);
+    } catch { toast('Server error.', false); }
+  }
+
+  function makeAdmin(btn) {
+    const id = btn.dataset.id, name = btn.dataset.name;
+    window.openConfirm('👑', `Make "${name}" Admin?`, 'This gives full admin dashboard access.', '👑 Make Admin', 'm-confirm-green', async () => {
+      try {
+        const r = await fetch(`${API}/admin/users/${id}/role`, { method:'PUT', headers:H, body:JSON.stringify({role:'admin'}) });
+        if (r.ok) { toast('Role updated to admin.'); loadAll(); }
+        else toast('Failed.', false);
+      } catch { toast('Server error.', false); }
+    });
+  }
+
+  function makeStudent(btn) {
+    const id = btn.dataset.id, name = btn.dataset.name;
+    window.openConfirm('👤', `Demote "${name}"?`, 'This removes admin access.', '👤 Make Student', 'm-confirm-red', async () => {
+      try {
+        const r = await fetch(`${API}/admin/users/${id}/role`, { method:'PUT', headers:H, body:JSON.stringify({role:'student'}) });
+        if (r.ok) { toast('Role updated.'); loadAll(); }
+        else toast('Failed.', false);
+      } catch { toast('Server error.', false); }
+    });
+  }
+
+  function deleteUser(btn) {
+    const id = btn.dataset.id, name = btn.dataset.name;
+    window.openConfirm('⚠️', `Delete user "${name}"?`, 'This permanently deletes the user and ALL their items and claims. This cannot be undone.', '🗑 Delete User', 'm-confirm-red', async () => {
+      try {
+        const r = await fetch(`${API}/admin/users/${id}`, { method:'DELETE', headers:H });
+        const d = await r.json();
+        if (r.ok) { toast(d.message); loadAll(); }
+        else toast(d.message || 'Failed.', false);
+      } catch { toast('Server error.', false); }
+    });
+  }
+
+  // ── OFFICE MANAGEMENT ────────────────────────
+  async function loadOfficeItems() {
+    const grid = document.getElementById('office-items-grid');
+    if (!grid) return;
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px"><div class="loader"></div></div>';
+    try {
+      const r = await fetch(`${API}/office/items`, { headers: H });
+      const items = await r.json();
+      animNum(document.getElementById('off-k-total'),   items.filter(i=>!i.isResolved).length);
+      animNum(document.getElementById('off-k-returned'),items.filter(i=>i.isResolved).length);
+      animNum(document.getElementById('off-k-pending'), items.filter(i=>!i.isResolved).length);
+      if (!items.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--text3);font-size:0.88rem">🏢 No items at office currently</div>';
+        return;
+      }
+      grid.innerHTML = items.map((item, idx) => `
+        <div class="office-item-card" style="animation-delay:${idx*0.06}s">
+          <img class="office-item-img" src="${item.image}"
+            onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2252%22 height=%2252%22><rect width=%2252%22 height=%2252%22 fill=%22%231a1a28%22/><text x=%2250%%22 y=%2255%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23444%22 font-size=%2222%22>📦</text></svg>'" />
+          <div style="flex:1;min-width:0">
+            <div class="office-item-name">${item.name}</div>
+            <div class="office-item-sub">${capFirst(item.category)} · ${locFmt(item.location)}</div>
+            <div class="office-item-meta">
+              <span class="office-meta-tag">📅 ${fmtDate(item.officeReceivedAt || item.createdAt)}</span>
+              <span class="office-meta-tag">👤 ${item.reportedBy?.name || item.reporterName || 'Unknown'}</span>
+              ${item.isResolved
+                ? '<span class="office-meta-tag" style="background:var(--green-bg);color:var(--green)">✅ Released</span>'
+                : '<span class="office-meta-tag" style="background:var(--amber-bg);color:var(--amber)">⏳ Holding</span>'}
+            </div>
+            ${item.officeNote ? `<div style="font-size:0.74rem;color:var(--text3);margin-top:4px">📝 ${item.officeNote}</div>` : ''}
+          </div>
+          <div class="office-item-actions">
+            ${!item.isResolved
+              ? `<button class="btn-act btn-role" data-id="${item._id}" data-name="${item.name}" onclick="releaseFromOffice(this)">✅ Release</button>`
+              : `<span style="font-size:0.74rem;color:var(--text3)">Done ${fmtDate(item.resolvedAt)}</span>`}
+          </div>
+        </div>`).join('');
+    } catch { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--text3)">Failed to load.</div>'; }
+  }
+
+  function releaseFromOffice(btn) {
+    const id = btn.dataset.id, name = btn.dataset.name;
+    window.openConfirm('✅', `Release "${name}"?`, 'Confirm the owner has collected this item. It will be marked Returned.', '✅ Confirm Release', 'm-confirm-green', async () => {
+      try {
+        const r = await fetch(`${API}/office/items/${id}/release`, { method:'PUT', headers:H, body:JSON.stringify({note:'Released to owner from E2 Room 201'}) });
+        if (r.ok) { toast(`"${name}" released! ✅`); loadOfficeItems(); loadAll(); }
+        else toast('Failed.', false);
+      } catch { toast('Server error.', false); }
+    });
+  }
+  window.releaseFromOffice = releaseFromOffice;
+
+  // ── INIT ─────────────────────────────────────
+  loadAll();
+</script>
+</body>
+</html>

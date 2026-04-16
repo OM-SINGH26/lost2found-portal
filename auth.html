@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Lost2Found | Chandigarh University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #0c0c0e;
+      --surface:   #131316;
+      --surface2:  #1c1c22;
+      --border:    rgba(255,255,255,0.07);
+      --cu-red:    #c0272d;
+      --cu-red-g:  rgba(192,39,45,0.3);
+      --found:     #3dd68c;
+      --lost:      #ff6b6b;
+      --text:      #f2f2f5;
+      --muted:     #888899;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --radius:    14px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; overflow-x: hidden;
+      display: flex; flex-direction: column;
+    }
+
+    /* ── NOISE ── */
+    body::after {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 999; opacity: 0.4;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 64px; padding: 0 5vw;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(12,12,14,0.92); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-left { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+    .nav-logo  { height: 36px; border-radius: 5px; filter: drop-shadow(0 0 6px rgba(192,39,45,0.4)); }
+    .nav-brand { font-family: var(--font-head); font-size: 1.3rem; font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
+    .nav-brand .nl { color: var(--lost); }
+    .nav-brand .nf { color: var(--found); }
+    .nav-brand .ns { color: var(--muted); font-weight: 300; }
+    .nav-cu    { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; margin-top: 1px; }
+    .nav-back  { font-size: 0.85rem; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
+    .nav-back:hover { color: var(--text); }
+
+    /* ── LAYOUT ── */
+    .page {
+      flex: 1; display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 100vh; padding-top: 64px;
+    }
+
+    /* ── LEFT PANEL — Campus visual ── */
+    .left-panel {
+      position: relative; overflow: hidden;
+      display: flex; flex-direction: column;
+      justify-content: flex-end; padding: 48px;
+    }
+    .left-bg {
+      position: absolute; inset: 0;
+      background: url('CU_IMAGE.jpg') center center / cover no-repeat;
+    }
+    .left-bg::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(12,12,14,0.3) 0%, rgba(12,12,14,0.85) 100%);
+    }
+    .left-content { position: relative; z-index: 2; }
+    .left-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border-radius: 100px; margin-bottom: 20px;
+      background: rgba(192,39,45,0.15); border: 1px solid rgba(192,39,45,0.35);
+    }
+    .left-badge img { height: 18px; border-radius: 3px; }
+    .left-badge span { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #ff9999; }
+    .left-title {
+      font-family: var(--font-head); font-size: 2.6rem; font-weight: 800;
+      letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 14px;
+    }
+    .left-title .tl { color: var(--lost); }
+    .left-title .tf { color: var(--found); }
+    .left-sub { font-size: 0.9rem; color: rgba(255,255,255,0.6); line-height: 1.65; max-width: 340px; margin-bottom: 32px; }
+    .left-stats { display: flex; gap: 24px; }
+    .lstat { text-align: left; }
+    .lstat-num { font-family: 'Courier New', monospace; font-size: 2rem; font-weight: 700; line-height: 1; }
+    .lstat-lbl { font-size: 0.72rem; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+    /* ── RIGHT PANEL — Auth form ── */
+    .right-panel {
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      padding: 48px 5vw;
+      border-left: 1px solid var(--border);
+    }
+    .auth-box { width: 100%; max-width: 420px; }
+
+    /* ── TAB SWITCHER ── */
+    .tab-row {
+      display: flex; gap: 0;
+      background: var(--surface2); border-radius: 12px; padding: 4px;
+      margin-bottom: 36px;
+    }
+    .tab-btn {
+      flex: 1; padding: 10px; border-radius: 9px; border: none;
+      font-family: var(--font-body); font-size: 0.88rem; font-weight: 600;
+      cursor: pointer; transition: all 0.25s; color: var(--muted); background: transparent;
+    }
+    .tab-btn.active { background: var(--bg); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+    /* ── FORM HEADING ── */
+    .form-heading { margin-bottom: 28px; }
+    .form-heading h2 { font-family: var(--font-head); font-size: 1.6rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 6px; }
+    .form-heading p { font-size: 0.87rem; color: var(--muted); line-height: 1.5; }
+
+    /* ── FORM FIELDS ── */
+    .fg { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .fg label { font-size: 0.78rem; font-weight: 500; color: var(--muted); }
+    .fg input {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 14px;
+      color: var(--text); font-family: var(--font-body); font-size: 0.9rem;
+      outline: none; width: 100%; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .fg input:focus { border-color: var(--cu-red); box-shadow: 0 0 0 3px rgba(192,39,45,0.12); }
+    .fg input::placeholder { color: #3a3a4a; }
+
+    .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* password toggle */
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 44px; }
+    .pw-toggle {
+      position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: var(--muted);
+      font-size: 1rem; padding: 4px; transition: color 0.2s;
+    }
+    .pw-toggle:hover { color: var(--text); }
+
+    /* ── SUBMIT BUTTON ── */
+    .btn-submit {
+      width: 100%; padding: 13px; border-radius: 11px; border: none; cursor: pointer;
+      background: var(--cu-red); color: white;
+      font-family: var(--font-body); font-weight: 700; font-size: 0.95rem;
+      box-shadow: 0 0 24px var(--cu-red-g); transition: all 0.2s;
+      margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-submit:hover  { opacity: 0.88; transform: translateY(-1px); }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── DIVIDER ── */
+    .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .divider span { font-size: 0.75rem; color: var(--muted); }
+
+    /* ── ALERT ── */
+    .alert {
+      padding: 12px 16px; border-radius: 10px; font-size: 0.85rem;
+      margin-bottom: 18px; display: none; align-items: flex-start; gap: 10px;
+      animation: slideIn 0.3s ease;
+    }
+    .alert.show { display: flex; }
+    .alert.error   { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); color: #ff9999; }
+    .alert.success { background: rgba(61,214,140,0.1);  border: 1px solid rgba(61,214,140,0.3);  color: #3dd68c; }
+    @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── FOOTER NOTE ── */
+    .auth-note {
+      text-align: center; font-size: 0.8rem; color: var(--muted);
+      margin-top: 22px; line-height: 1.6;
+    }
+    .auth-note a { color: var(--cu-red); text-decoration: none; }
+    .auth-note a:hover { text-decoration: underline; }
+
+    /* ── PASSWORD STRENGTH ── */
+    .pw-strength { height: 3px; border-radius: 3px; margin-top: 6px; transition: all 0.3s; background: var(--border); overflow: hidden; }
+    .pw-strength-bar { height: 100%; border-radius: 3px; width: 0; transition: width 0.3s, background 0.3s; }
+
+    /* ── SUCCESS STATE ── */
+    .success-state {
+      text-align: center; padding: 40px 20px; display: none;
+      flex-direction: column; align-items: center;
+    }
+    .success-state.show { display: flex; }
+    .success-ico {
+      width: 64px; height: 64px; border-radius: 50%; margin-bottom: 20px;
+      background: rgba(61,214,140,0.1); border: 2px solid var(--found);
+      display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+    }
+    .success-state h3 { font-family: var(--font-head); font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; }
+    .success-state p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 24px; }
+
+    /* ── OTP BOXES ── */
+    .otp-box {
+      width: 48px; height: 56px; border-radius: 10px; border: 2px solid var(--border);
+      background: var(--bg); color: var(--text); font-size: 1.5rem; font-weight: 700;
+      text-align: center; font-family: 'Courier New', monospace;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .otp-box:focus { border-color: var(--cu-red); box-shadow: 0 0 0 3px rgba(192,39,45,0.15); }
+    .otp-box.filled { border-color: var(--cu-red); background: rgba(192,39,45,0.05); }
+
+    /* ── SPINNER ── */
+    .spinner {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .page { grid-template-columns: 1fr; }
+      .left-panel { display: none; }
+      .right-panel { padding: 32px 6vw; min-height: calc(100vh - 64px); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-left" href="index.html">
+    <img class="nav-logo" src="logo.jpg" alt="CU" />
+    <div>
+      <div class="nav-brand"><span class="nl">Lost</span><span class="ns">2</span><span class="nf">Found</span></div>
+      <div class="nav-cu">Chandigarh University</div>
+    </div>
+  </a>
+  <a class="nav-back" href="index.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back to Portal
+  </a>
+</nav>
+
+<!-- PAGE -->
+<div class="page">
+
+  <!-- LEFT — Campus visual -->
+  <div class="left-panel">
+    <div class="left-bg"></div>
+    <div class="left-content">
+      <div class="left-badge">
+        <img src="logo.jpg" alt="CU" />
+        <span>Chandigarh University</span>
+      </div>
+      <h2 class="left-title">
+        <span class="tl">Lost</span> it?<br>
+        We'll <span class="tf">find</span> it.
+      </h2>
+      <p class="left-sub">
+        The official campus portal to report, track, and reclaim lost belongings at CU. Join thousands of students keeping campus secure.
+      </p>
+      <div class="left-stats">
+        <div class="lstat">
+          <div class="lstat-num" style="color:var(--cu-red)" id="ls-total">--</div>
+          <div class="lstat-lbl">Total Reports</div>
+        </div>
+        <div class="lstat">
+          <div class="lstat-num" style="color:var(--found)" id="ls-found">--</div>
+          <div class="lstat-lbl">Items Found</div>
+        </div>
+        <div class="lstat">
+          <div class="lstat-num" style="color:var(--lost)" id="ls-lost">--</div>
+          <div class="lstat-lbl">Still Missing</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT — Auth form -->
+  <div class="right-panel">
+    <div class="auth-box">
+
+      <!-- Tab switcher -->
+      <div class="tab-row">
+        <button class="tab-btn active" id="tab-login"    onclick="switchTab('login')">Sign In</button>
+        <button class="tab-btn"        id="tab-register" onclick="switchTab('register')">Create Account</button>
+      </div>
+
+      <!-- Alert box -->
+      <div class="alert" id="alert">
+        <span id="alert-icon">⚠</span>
+        <span id="alert-msg">Something went wrong.</span>
+      </div>
+
+      <!-- ══ LOGIN FORM ══ -->
+      <div id="login-section">
+        <div class="form-heading">
+          <h2>Welcome back 👋</h2>
+          <p>Sign in to report items, track your cases, and manage claims.</p>
+        </div>
+        <form id="login-form" onsubmit="handleLogin(event)">
+          <div class="fg">
+            <label>Email Address</label>
+            <input type="email" id="l-email" placeholder="your@cumail.in" required autocomplete="email" />
+          </div>
+          <div class="fg">
+            <label>Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="l-password" placeholder="Enter your password" required autocomplete="current-password" />
+              <button type="button" class="pw-toggle" onclick="togglePw('l-password', this)">👁</button>
+            </div>
+          </div>
+          <div style="text-align:right; margin-bottom:18px;">
+            <a href="#" onclick="switchTab('forgot')" style="font-size:0.8rem; color:var(--cu-red); text-decoration:none;">Forgot password?</a>
+          </div>
+          <button type="submit" class="btn-submit" id="login-btn">
+            <span id="login-btn-text">Sign In</span>
+          </button>
+        </form>
+        <div class="divider"><span>or</span></div>
+        <p class="auth-note">
+          Don't have an account?
+          <a href="#" onclick="switchTab('register')">Create one free →</a>
+        </p>
+      </div>
+
+      <!-- ══ FORGOT PASSWORD FLOW ══ -->
+      <div id="forgot-section" style="display:none">
+
+        <!-- Step 1: Enter Email -->
+        <div id="forgot-step1">
+          <div class="form-heading">
+            <h2>Reset Password 🔐</h2>
+            <p>Enter your registered email and we'll send you a 6-digit OTP.</p>
+          </div>
+          <form id="forgot-form" onsubmit="handleForgot(event)">
+            <div class="fg">
+              <label>Email Address</label>
+              <input type="email" id="f-email" placeholder="your@cumail.in" required />
+            </div>
+            <button type="submit" class="btn-submit" id="forgot-btn">
+              <span id="forgot-btn-text">Send OTP →</span>
+            </button>
+          </form>
+          <div class="divider"><span>or</span></div>
+          <p class="auth-note"><a href="#" onclick="switchTab('login')">← Back to Sign In</a></p>
+        </div>
+
+        <!-- Step 2: Enter OTP -->
+        <div id="forgot-step2" style="display:none">
+          <div class="form-heading">
+            <h2>Enter OTP 📬</h2>
+            <p id="otp-sent-msg">We sent a 6-digit code to your email.</p>
+          </div>
+          <!-- OTP boxes -->
+          <div style="display:flex;gap:10px;justify-content:center;margin-bottom:24px">
+            <input class="otp-box" maxlength="1" type="text" inputmode="numeric" />
+            <input class="otp-box" maxlength="1" type="text" inputmode="numeric" />
+            <input class="otp-box" maxlength="1" type="text" inputmode="numeric" />
+            <input class="otp-box" maxlength="1" type="text" inputmode="numeric" />
+            <input class="otp-box" maxlength="1" type="text" inputmode="numeric" />
+            <input class="otp-box" maxlength="1" type="text" inputmode="numeric" />
+          </div>
+          <button class="btn-submit" id="verify-btn" onclick="handleVerifyOTP()">
+            <span id="verify-btn-text">Verify OTP →</span>
+          </button>
+          <p class="auth-note" style="margin-top:16px">
+            Didn't get it? <a href="#" onclick="handleForgotResend()">Resend OTP</a>
+          </p>
+        </div>
+
+        <!-- Step 3: New Password -->
+        <div id="forgot-step3" style="display:none">
+          <div class="form-heading">
+            <h2>New Password 🔑</h2>
+            <p>OTP verified! Set your new password.</p>
+          </div>
+          <form id="reset-form" onsubmit="handleReset(event)">
+            <div class="fg">
+              <label>New Password</label>
+              <div class="pw-wrap">
+                <input type="password" id="new-password" placeholder="Min 6 characters" required oninput="checkStrength(this.value)" />
+                <button type="button" class="pw-toggle" onclick="togglePw('new-password',this)">👁</button>
+              </div>
+              <div class="pw-strength"><div class="pw-strength-bar" id="pw-bar"></div></div>
+            </div>
+            <div class="fg">
+              <label>Confirm Password</label>
+              <div class="pw-wrap">
+                <input type="password" id="confirm-password" placeholder="Repeat new password" required />
+                <button type="button" class="pw-toggle" onclick="togglePw('confirm-password',this)">👁</button>
+              </div>
+            </div>
+            <button type="submit" class="btn-submit" id="reset-btn">
+              <span id="reset-btn-text">Reset Password →</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ══ REGISTER FORM ══ -->
+      <div id="register-section" style="display:none">
+        <div class="form-heading">
+          <h2>Join Lost2Found 🎓</h2>
+          <p>Create your CU account to start reporting and claiming lost items.</p>
+        </div>
+        <form id="register-form" onsubmit="handleRegister(event)">
+          <div class="input-row">
+            <div class="fg" style="margin-bottom:0">
+              <label>Full Name</label>
+              <input type="text" id="r-name" placeholder="Your full name" required autocomplete="name" />
+            </div>
+            <div class="fg" style="margin-bottom:0">
+              <label>Roll Number</label>
+              <input type="text" id="r-roll" placeholder="e.g. 21BCE1234" />
+            </div>
+          </div>
+          <div style="margin-bottom:14px"></div>
+          <div class="fg">
+            <label>Email Address</label>
+            <input type="email" id="r-email" placeholder="your@cumail.in" required autocomplete="email" />
+          </div>
+          <div class="fg">
+            <label>Phone Number</label>
+            <input type="tel" id="r-phone" placeholder="+91 XXXXX XXXXX" />
+          </div>
+          <div class="fg">
+            <label>Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="r-password" placeholder="Min 6 characters" required autocomplete="new-password" oninput="checkStrength(this.value)" />
+              <button type="button" class="pw-toggle" onclick="togglePw('r-password', this)">👁</button>
+            </div>
+            <div class="pw-strength"><div class="pw-strength-bar" id="pw-bar"></div></div>
+          </div>
+          <div class="fg">
+            <label>Confirm Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="r-confirm" placeholder="Repeat your password" required autocomplete="new-password" />
+              <button type="button" class="pw-toggle" onclick="togglePw('r-confirm', this)">👁</button>
+            </div>
+          </div>
+          <button type="submit" class="btn-submit" id="register-btn">
+            <span id="register-btn-text">Create Account</span>
+          </button>
+        </form>
+        <div class="divider"><span>or</span></div>
+        <p class="auth-note">
+          Already have an account?
+          <a href="#" onclick="switchTab('login')">Sign in →</a>
+        </p>
+        <p class="auth-note" style="margin-top:10px; font-size:0.73rem;">
+          By creating an account, you agree to use this portal only for legitimate lost & found purposes at Chandigarh University.
+        </p>
+      </div>
+
+      <!-- ══ SUCCESS STATE ══ -->
+      <div class="success-state" id="success-state">
+        <div class="success-ico">✓</div>
+        <h3 id="success-title">Welcome!</h3>
+        <p id="success-sub">You're now logged in. Redirecting to the portal…</p>
+        <a href="index.html" class="btn-submit" style="text-decoration:none; width:auto; padding:12px 32px;">Go to Portal →</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = '/api';
+
+  // ── TAB SWITCH ────────────────────────────────
+  function switchTab(tab) {
+    document.getElementById('login-section').style.display    = tab === 'login'    ? 'block' : 'none';
+    document.getElementById('register-section').style.display = tab === 'register' ? 'block' : 'none';
+    document.getElementById('forgot-section').style.display   = tab === 'forgot'   ? 'block' : 'none';
+    document.getElementById('success-state').classList.remove('show');
+    document.getElementById('tab-login').classList.toggle('active',    tab === 'login');
+    document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+    hideAlert();
+    // reset forgot steps
+    if (tab === 'forgot') {
+      document.getElementById('forgot-step1').style.display = 'block';
+      document.getElementById('forgot-step2').style.display = 'none';
+      document.getElementById('forgot-step3').style.display = 'none';
+    }
+  }
+
+  // ── FORGOT PASSWORD FLOW ──────────────────────
+  let forgotEmail = '';
+
+  async function handleForgot(e) {
+    e.preventDefault(); hideAlert();
+    forgotEmail = document.getElementById('f-email').value.trim();
+    setLoading('forgot-btn', 'forgot-btn-text', true);
+    try {
+      const res  = await fetch(`${API}/auth/forgot-password`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail })
+      });
+      const data = await res.json();
+      if (!res.ok) { showAlert(data.message); return; }
+      document.getElementById('otp-sent-msg').textContent = `We sent a 6-digit OTP to ${forgotEmail}`;
+      document.getElementById('forgot-step1').style.display = 'none';
+      document.getElementById('forgot-step2').style.display = 'block';
+      setupOTPBoxes();
+      showAlert('OTP sent! Check your email inbox.', 'success');
+    } catch { showAlert('Server error. Is the server running?'); }
+    finally   { setLoading('forgot-btn', 'forgot-btn-text', false); }
+  }
+
+  async function handleForgotResend() {
+    hideAlert();
+    try {
+      const res = await fetch(`${API}/auth/forgot-password`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail })
+      });
+      const data = await res.json();
+      showAlert(res.ok ? 'New OTP sent!' : data.message, res.ok ? 'success' : 'error');
+    } catch { showAlert('Server error.'); }
+  }
+
+  function setupOTPBoxes() {
+    const boxes = document.querySelectorAll('.otp-box');
+    boxes.forEach((box, i) => {
+      box.value = '';
+      box.classList.remove('filled');
+      box.addEventListener('input', () => {
+        box.classList.toggle('filled', box.value.length > 0);
+        if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
+      });
+      box.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !box.value && i > 0) boxes[i - 1].focus();
+      });
+    });
+    boxes[0].focus();
+  }
+
+  function getOTPValue() {
+    return Array.from(document.querySelectorAll('.otp-box')).map(b => b.value).join('');
+  }
+
+  async function handleVerifyOTP() {
+    hideAlert();
+    const otp = getOTPValue();
+    if (otp.length < 6) { showAlert('Please enter the complete 6-digit OTP.'); return; }
+    setLoading('verify-btn', 'verify-btn-text', true);
+    try {
+      const res  = await fetch(`${API}/auth/verify-otp`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail, otp })
+      });
+      const data = await res.json();
+      if (!res.ok) { showAlert(data.message); return; }
+      document.getElementById('forgot-step2').style.display = 'none';
+      document.getElementById('forgot-step3').style.display = 'block';
+      hideAlert();
+    } catch { showAlert('Server error.'); }
+    finally   { setLoading('verify-btn', 'verify-btn-text', false); }
+  }
+
+  async function handleReset(e) {
+    e.preventDefault(); hideAlert();
+    const newPassword     = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    const otp = getOTPValue();
+    if (newPassword !== confirmPassword) { showAlert('Passwords do not match.'); return; }
+    if (newPassword.length < 6) { showAlert('Password must be at least 6 characters.'); return; }
+    setLoading('reset-btn', 'reset-btn-text', true);
+    try {
+      const res  = await fetch(`${API}/auth/reset-password`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail, otp, newPassword })
+      });
+      const data = await res.json();
+      if (!res.ok) { showAlert(data.message); return; }
+      showSuccess('Password reset successfully! You can now sign in with your new password.');
+    } catch { showAlert('Server error.'); }
+    finally   { setLoading('reset-btn', 'reset-btn-text', false); }
+  }
+
+  // ── ALERT ─────────────────────────────────────
+  function showAlert(msg, type = 'error') {
+    const el = document.getElementById('alert');
+    document.getElementById('alert-icon').textContent = type === 'error' ? '⚠' : '✓';
+    document.getElementById('alert-msg').textContent  = msg;
+    el.className = `alert show ${type}`;
+  }
+  function hideAlert() {
+    document.getElementById('alert').className = 'alert';
+  }
+
+  // ── PASSWORD TOGGLE ───────────────────────────
+  function togglePw(id, btn) {
+    const input = document.getElementById(id);
+    const show  = input.type === 'password';
+    input.type  = show ? 'text' : 'password';
+    btn.textContent = show ? '🙈' : '👁';
+  }
+
+  // ── PASSWORD STRENGTH ─────────────────────────
+  function checkStrength(val) {
+    const bar = document.getElementById('pw-bar');
+    let score = 0;
+    if (val.length >= 6)  score++;
+    if (val.length >= 10) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    const colors = ['', '#ff4444', '#ff8c00', '#ffd700', '#3dd68c', '#00c853'];
+    const widths  = ['0%', '20%', '40%', '65%', '85%', '100%'];
+    bar.style.width      = widths[score]  || '0%';
+    bar.style.background = colors[score]  || 'transparent';
+  }
+
+  // ── SET LOADING STATE ─────────────────────────
+  function setLoading(btnId, textId, loading) {
+    const btn  = document.getElementById(btnId);
+    const text = document.getElementById(textId);
+    btn.disabled = loading;
+    text.innerHTML = loading
+      ? '<div class="spinner"></div>'
+      : (btnId === 'login-btn' ? 'Sign In' : 'Create Account');
+  }
+
+  // ── SAVE TOKEN ────────────────────────────────
+  function saveAuth(token, user) {
+    localStorage.setItem('l2f_token', token);
+    localStorage.setItem('l2f_user',  JSON.stringify(user));
+  }
+
+  // ── SHOW SUCCESS ──────────────────────────────
+  function showSuccess(title, sub) {
+    document.getElementById('login-section').style.display    = 'none';
+    document.getElementById('register-section').style.display = 'none';
+    document.getElementById('success-title').textContent = title;
+    document.getElementById('success-sub').textContent   = sub;
+    document.getElementById('success-state').classList.add('show');
+    setTimeout(() => { window.location.href = 'index.html'; }, 2500);
+  }
+
+  // ── LOGIN ─────────────────────────────────────
+  async function handleLogin(e) {
+    e.preventDefault(); hideAlert();
+    const email    = document.getElementById('l-email').value.trim();
+    const password = document.getElementById('l-password').value;
+
+    setLoading('login-btn', 'login-btn-text', true);
+    try {
+      const res  = await fetch(`${API}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) { showAlert(data.message || 'Login failed.'); return; }
+
+      saveAuth(data.token, data.user);
+      showSuccess(`Welcome back, ${data.user.name.split(' ')[0]}! 👋`, 'Login successful. Taking you to the portal…');
+    } catch {
+      showAlert('Could not connect to server. Make sure it is running.');
+    } finally {
+      setLoading('login-btn', 'login-btn-text', false);
+    }
+  }
+
+  // ── REGISTER ──────────────────────────────────
+  async function handleRegister(e) {
+    e.preventDefault(); hideAlert();
+
+    const name     = document.getElementById('r-name').value.trim();
+    const rollNo   = document.getElementById('r-roll').value.trim();
+    const email    = document.getElementById('r-email').value.trim();
+    const phone    = document.getElementById('r-phone').value.trim();
+    const password = document.getElementById('r-password').value;
+    const confirm  = document.getElementById('r-confirm').value;
+
+    if (password !== confirm) { showAlert('Passwords do not match.'); return; }
+    if (password.length < 6)  { showAlert('Password must be at least 6 characters.'); return; }
+
+    setLoading('register-btn', 'register-btn-text', true);
+    try {
+      const res  = await fetch(`${API}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, phone, rollNo })
+      });
+      const data = await res.json();
+      if (!res.ok) { showAlert(data.message || 'Registration failed.'); return; }
+
+      saveAuth(data.token, data.user);
+      showSuccess(`Account created! Welcome, ${data.user.name.split(' ')[0]}! 🎓`, 'Your account is ready. Redirecting to the portal…');
+    } catch {
+      showAlert('Could not connect to server. Make sure it is running.');
+    } finally {
+      setLoading('register-btn', 'register-btn-text', false);
+    }
+  }
+
+  // ── LOAD STATS ────────────────────────────────
+  function animNum(el, n) {
+    el.textContent = '0';
+    if (n === 0) return;
+    let c = 0, s = Math.max(1, Math.ceil(n / 30));
+    const iv = setInterval(() => { c = Math.min(c + s, n); el.textContent = c; if (c >= n) clearInterval(iv); }, 40);
+  }
+  async function loadStats() {
+    try {
+      const res  = await fetch(`${API}/stats`);
+      const data = await res.json();
+      animNum(document.getElementById('ls-total'), data.total ?? 0);
+      animNum(document.getElementById('ls-found'), data.found ?? 0);
+      animNum(document.getElementById('ls-lost'),  data.lost  ?? 0);
+    } catch { /* server not running — keep -- */ }
+  }
+
+  // ── REDIRECT IF ALREADY LOGGED IN ────────────
+  function checkExistingSession() {
+    const token = localStorage.getItem('l2f_token');
+    const user  = localStorage.getItem('l2f_user');
+    if (token && user) {
+      window.location.replace('index.html');
+    }
+  }
+
+  checkExistingSession();
+  loadStats();
+</script>
+</body>
+</html>
